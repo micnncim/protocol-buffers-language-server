@@ -1,6 +1,8 @@
 #! /usr/bin/env bash
 
-set -euo pipefail
+set -o errexit
+set -o nounset
+set -o pipefail
 
 if [[ "$#" -ne 2 ]]; then
 	echo "usage: $0 <organization> <repository>"
