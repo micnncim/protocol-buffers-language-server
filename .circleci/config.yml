@@ -1,0 +1,57 @@
+version: 2.1
+executors:
+  default:
+    docker:
+      - image: circleci/golang:1.12
+        environment:
+          GO111MODULE: "on"
+    working_directory: /go/src/github.com/micnncim/protocol-buffers-language-server
+commands:
+  restore_dep:
+    steps:
+      - restore_cache:
+          keys:
+            - go-mod-{{ checksum "go.sum" }}
+  save_dep:
+    steps:
+      - save_cache:
+          key: go-mod-{{ checksum "go.sum" }}
+          paths:
+            - /go/pkg/mod/cache
+  install_dep:
+    steps:
+      - run:
+          name: Installing dependencies
+          command: make dep
+  bazel_test:
+    steps:
+      - run:
+          name: Run bazel-test
+          command: make bazel-test
+workflows:
+  build:
+    jobs:
+      - build
+jobs:
+  build:
+    executor:
+      name: default
+    steps:
+      - checkout
+      - restore_dep
+      - install_dep
+      - run:
+          name: Install Bazel
+          command: |
+            ./hack/install-bazel.sh
+      - save_dep
+      - bazel_test
+      - run:
+          name: Run test and collect coverage
+          command: |
+            make coverage
+            bash <(curl -s https://codecov.io/bash)
+      - run:
+          name: Run linter
+          command: |
+            make reviewdog
