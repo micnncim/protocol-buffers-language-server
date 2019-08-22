@@ -35,6 +35,10 @@ jobs:
       - checkout
       - restore_dep
       - install_dep
+      - run:
+          name: Install Bazel
+          command: |
+            ./hack/install-bazel.sh
       - save_dep
       - run:
           name: Run test and collect coverage
