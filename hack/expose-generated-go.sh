@@ -18,8 +18,8 @@ echo -e ">>> Exposing Go generated files"
 expose_package () {
 	local out_path=$1
 	local package=$2
-	local old_links=$(eval echo \$$3)
-	local generated_files=$(eval echo \$$4)
+	local old_links=$(eval echo \$"$3")
+	local generated_files=$(eval echo \$"$4")
 
     # Delete all old links
 	for f in ${old_links}; do
@@ -32,7 +32,7 @@ expose_package () {
 	# Compute the relative_path from this package to the bazel-bin
 	local count_paths="$(echo -n "${package}" | tr '/' '\n' | wc -l)"
 	local relative_path=""
-	for i in $(seq 0 ${count_paths}); do
+	for i in $(seq 0 "${count_paths}"); do
 		relative_path="../${relative_path}"
 	done
 
@@ -68,7 +68,7 @@ for label in $(bazel query 'kind(go_proto_library, //...)'); do
 	# Compute the path where bazel put the files
 	out_path="bazel-bin/${package}/${OS}_${ARCH}_stripped/${target}%/github.com/${ORGANIZATION}/${REPOSITORY}/${package}"
 
-	old_links=$(eval echo ${package}/*.pb.go)
-	generated_files=$(eval echo ${out_path}/*.pb.go)
-	expose_package ${out_path} ${package} old_links generated_files
+	old_links=$(eval echo "${package}"/*.pb.go)
+	generated_files=$(eval echo "${out_path}"/*.pb.go)
+	expose_package "${out_path}" "${package}" old_links generated_files
 done
