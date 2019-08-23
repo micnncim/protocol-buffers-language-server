@@ -23,5 +23,5 @@ curl -sSL \
   -o ${tmpdir}/bazel-${version}-installer-${os}-x86_64.sh
 chmod +x ${tmpdir}/bazel-${version}-installer-${os}-x86_64.sh
 printf "\e[32;1mExecuting installer script...\n\e[m"
-./${tmpdir}/bazel-${version}-installer-${os}-x86_64.sh
+./${tmpdir}/bazel-${version}-installer-${os}-x86_64.sh --user
 rm -rf ${tmpdir}

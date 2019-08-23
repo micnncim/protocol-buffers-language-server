@@ -38,12 +38,12 @@ jobs:
       name: default
     steps:
       - checkout
-      - restore_dep
-      - install_dep
       - run:
           name: Install Bazel
           command: |
             ./hack/install-bazel.sh
+      - restore_dep
+      - install_dep
       - save_dep
       - bazel_test
       - run:
