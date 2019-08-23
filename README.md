@@ -2,6 +2,26 @@
 
 [Language Server](https://langserver.org/) for [Protocol Buffers](https://developers.google.com/protocol-buffers/).
 
+## Develop
+
+### Install Bazel
+
+```
+$ ./hack/install-bazel.sh
+```
+
+### Update modules
+
+```
+$ make dep
+```
+
+### Update Bazel files
+
+```
+$ make gazelle
+```
+
 ## Todo
 
 - [ ] `initialize`
