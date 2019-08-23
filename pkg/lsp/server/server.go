@@ -11,10 +11,38 @@ import (
 
 type Server struct {
 	Conn   *jsonrpc2.Conn
+	Client protocol.ClientInterface
 	logger *zap.Logger
 }
 
 var _ protocol.ServerInterface = (*Server)(nil)
+
+type Option func(*Server)
+
+func WithLogger(logger *zap.Logger) Option {
+	return func(s *Server) {
+		s.logger = logger
+	}
+}
+
+func NewServer(ctx context.Context, stream jsonrpc2.Stream, opts ...Option) *Server {
+	s := &Server{
+		logger: zap.NewNop(),
+	}
+	for _, opt := range opts {
+		opt(s)
+	}
+
+	jsonrpcOpts := []jsonrpc2.Options{
+		jsonrpc2.WithCanceler(protocol.Canceller),
+		jsonrpc2.WithCapacity(50),
+		jsonrpc2.WithLogger(s.logger.Named("jsonrpc2")),
+	}
+	s.Conn, s.Client = protocol.NewServer(ctx, s, stream, zap.NewNop(), jsonrpcOpts...)
+	s.logger = s.logger.Named("server")
+
+	return s
+}
 
 func (s *Server) Run(ctx context.Context) (err error) {
 	panic("not implement yet")
