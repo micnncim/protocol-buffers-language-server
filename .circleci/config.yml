@@ -23,11 +23,11 @@ commands:
       - run:
           name: Installing dependencies
           command: make dep
-  bazel_test:
+  test:
     steps:
       - run:
-          name: Run bazel-test
-          command: make bazel-test
+          name: Run test
+          command: make test
 workflows:
   build:
     jobs:
@@ -38,14 +38,10 @@ jobs:
       name: default
     steps:
       - checkout
-      - run:
-          name: Install Bazel
-          command: |
-            ./hack/install-bazel.sh
       - restore_dep
       - install_dep
       - save_dep
-      - bazel_test
+      - test
       - run:
           name: Run test and collect coverage
           command: |
