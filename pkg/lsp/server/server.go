@@ -15,8 +15,8 @@ type state int
 const (
 	stateCreated = state(iota)
 	stateInitializing
-	stateInitialized // set once the server has received "initialize" request
-	stateShutdown    // set once the server has received "initialized" request
+	stateInitialized // Set once the server has received Initialize Request
+	stateShutdown    // Set once the server has received Initialized Request
 )
 
 type Server struct {
