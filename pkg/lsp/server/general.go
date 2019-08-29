@@ -15,13 +15,14 @@ func (s *Server) Initialize(ctx context.Context, params *protocol.InitializePara
 	state := s.state
 	s.stateMu.RUnlock()
 	if state > stateInitializing {
-		return nil, errors.Errorf("server already initialized")
+		err = errors.Errorf("server already initialized")
+		return
 	}
 	s.stateMu.Lock()
 	s.state = stateInitializing
 	s.stateMu.Unlock()
 
-	return &protocol.InitializeResult{
+	result = &protocol.InitializeResult{
 		Capabilities: protocol.ServerCapabilities{
 			TextDocumentSync: nil,
 			HoverProvider:    false,
@@ -44,7 +45,8 @@ func (s *Server) Initialize(ctx context.Context, params *protocol.InitializePara
 				},
 			},
 		},
-	}, nil
+	}
+	return
 }
 
 // Initialized resolves Initialized Notification.
@@ -53,7 +55,7 @@ func (s *Server) Initialized(ctx context.Context, params *protocol.InitializedPa
 	s.stateMu.Lock()
 	s.state = stateInitialized
 	s.stateMu.Unlock()
-	return nil
+	return
 }
 
 // Shutdown resolves Shutdown Request.
@@ -63,12 +65,13 @@ func (s *Server) Shutdown(ctx context.Context) (err error) {
 	state := s.state
 	s.stateMu.RUnlock()
 	if state < stateInitialized {
-		return errors.Errorf("server not initialized")
+		err = errors.Errorf("server not initialized")
+		return
 	}
 	s.stateMu.Lock()
 	s.state = stateShutdown
 	s.stateMu.Unlock()
-	return nil
+	return
 }
 
 // Exit resolves Exit Notification.
@@ -80,5 +83,5 @@ func (s *Server) Exit(ctx context.Context) (err error) {
 		os.Exit(1)
 	}
 	os.Exit(0)
-	return nil
+	return
 }
