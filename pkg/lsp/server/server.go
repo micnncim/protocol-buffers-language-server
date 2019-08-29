@@ -45,11 +45,36 @@ func NewServer(ctx context.Context, stream jsonrpc2.Stream, opts ...Option) *Ser
 }
 
 func (s *Server) Run(ctx context.Context) (err error) {
-	panic("not implement yet")
+	return s.Conn.Run(ctx)
 }
 
+// Initialize resolves Initialize Request.
+// https://microsoft.github.io/language-server-protocol/specification#initialize
 func (s *Server) Initialize(ctx context.Context, params *protocol.InitializeParams) (result *protocol.InitializeResult, err error) {
-	panic("not implement yet")
+	return &protocol.InitializeResult{
+		Capabilities: protocol.ServerCapabilities{
+			TextDocumentSync: nil,
+			HoverProvider:    false,
+			CompletionProvider: &protocol.CompletionOptions{
+				TriggerCharacters: []string{"."},
+			},
+			SignatureHelpProvider: &protocol.SignatureHelpOptions{
+				TriggerCharacters: nil,
+			},
+			DefinitionProvider:              false,
+			WorkspaceSymbolProvider:         false,
+			DocumentFormattingProvider:      false,
+			DocumentRangeFormattingProvider: false,
+			RenameProvider:                  nil,
+			FoldingRangeProvider:            nil,
+			Workspace: &protocol.ServerCapabilitiesWorkspace{
+				WorkspaceFolders: &protocol.ServerCapabilitiesWorkspaceFolders{
+					Supported:           false,
+					ChangeNotifications: nil,
+				},
+			},
+		},
+	}, nil
 }
 
 func (s *Server) Initialized(ctx context.Context, params *protocol.InitializedParams) (err error) {
