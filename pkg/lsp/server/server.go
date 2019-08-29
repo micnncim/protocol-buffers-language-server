@@ -35,7 +35,7 @@ func NewServer(ctx context.Context, stream jsonrpc2.Stream, opts ...Option) *Ser
 
 	jsonrpcOpts := []jsonrpc2.Options{
 		jsonrpc2.WithCanceler(protocol.Canceller),
-		jsonrpc2.WithCapacity(50),
+		jsonrpc2.WithCapacity(protocol.DefaultBufferSize),
 		jsonrpc2.WithLogger(s.logger.Named("jsonrpc2")),
 	}
 	s.Conn, s.Client = protocol.NewServer(ctx, s, stream, zap.NewNop(), jsonrpcOpts...)
