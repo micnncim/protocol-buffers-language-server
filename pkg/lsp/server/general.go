@@ -53,7 +53,6 @@ func (s *Server) Initialized(ctx context.Context, params *protocol.InitializedPa
 	s.stateMu.Lock()
 	s.state = stateInitialized
 	s.stateMu.Unlock()
-
 	return nil
 }
 
