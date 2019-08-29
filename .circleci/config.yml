@@ -22,7 +22,7 @@ commands:
     steps:
       - run:
           name: Installing dependencies
-          command: make dep
+          command: go mod download
   test:
     steps:
       - run:
