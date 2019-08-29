@@ -1,6 +1,6 @@
 .PHONY: test
 test:
-	go test -race ./...
+	GO111MODULE=on go test -race ./...
 
 .PHONY: dep
 dep:
