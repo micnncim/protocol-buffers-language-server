@@ -6,6 +6,7 @@ test:
 dep:
 	GO111MODULE=on go mod tidy
 	bazel run //:gazelle -- update-repos -from_file=go.mod
+	bazel run //:gazelle
 
 .PHONY: bazel-build
 bazel-build:
@@ -14,10 +15,6 @@ bazel-build:
 .PHONY: bazel-test
 bazel-test:
 	bazel test //...
-
-.PHONY: gazelle
-gazelle:
-	bazel run //:gazelle
 
 .PHONY: buildifier
 buildifier:
