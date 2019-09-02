@@ -871,3 +871,10 @@ go_repository(
     sum = "h1:2/OCbaWT0ZStdlrAU9heVF2FAVUoP+Mky/bPxP2Mqhs=",
     version = "v1.10.1-0.20190430155229-8a2ee5670ced",
 )
+
+go_repository(
+    name = "com_github_emicklei_proto",
+    importpath = "github.com/emicklei/proto",
+    sum = "h1:XbpwxmuOPrdES97FrSfpyy67SSCV/wBIKXqgJzh6hNw=",
+    version = "v1.6.15",
+)
