@@ -6,7 +6,7 @@ type MapField struct {
 	protoMapField *proto.MapField
 }
 
-func NewMapField(protoMapField *proto.MapField) *MapField {
+func newMapField(protoMapField *proto.MapField) *MapField {
 	return &MapField{
 		protoMapField: protoMapField,
 	}

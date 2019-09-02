@@ -1,6 +1,12 @@
 package registry
 
-import "github.com/emicklei/proto"
+import (
+	"github.com/emicklei/proto"
+)
+
+type ProtoSet struct {
+	protos map[string]*Proto
+}
 
 type Proto struct {
 	protoProto *proto.Proto
@@ -14,6 +20,20 @@ type Proto struct {
 	lineToMessage map[int]*Message
 	lineToEnum    map[int]*Enum
 	lineToService map[int]*Service
+}
+
+func NewProtoSet(protos ...*proto.Proto) *ProtoSet {
+	protoSet := &ProtoSet{
+		protos: make(map[string]*Proto),
+	}
+	for _, p := range protos {
+		protoSet.protos[p.Filename] = NewProto(p)
+	}
+	return protoSet
+}
+
+func (p *ProtoSet) Append(proto *proto.Proto) {
+	p.protos[proto.Filename] = NewProto(proto)
 }
 
 func NewProto(protoProto *proto.Proto) *Proto {
@@ -60,4 +80,20 @@ func NewProto(protoProto *proto.Proto) *Proto {
 	}
 
 	return p
+}
+
+func (p *Proto) GetPackageByLine(line int) *Package {
+	return p.lineToPackage[line]
+}
+
+func (p *Proto) GetMessageByLine(line int) *Message {
+	return p.lineToMessage[line]
+}
+
+func (p *Proto) GetEnumByLine(line int) *Enum {
+	return p.lineToEnum[line]
+}
+
+func (p *Proto) GetServiceByLine(line int) *Service {
+	return p.lineToService[line]
 }
