@@ -8,7 +8,8 @@ type Enum struct {
 	fullyQualifiedName string
 
 	fieldNameToValue map[string]*EnumField
-	lineToEnumField  map[int]*EnumField
+
+	lineToEnumField map[int]*EnumField
 }
 
 type EnumField struct {
@@ -22,7 +23,8 @@ func newEnum(protoEnum *proto.Enum) *Enum {
 		fullyQualifiedName: "",
 
 		fieldNameToValue: make(map[string]*EnumField),
-		lineToEnumField:  make(map[int]*EnumField),
+
+		lineToEnumField: make(map[int]*EnumField),
 	}
 
 	for _, e := range protoEnum.Elements {

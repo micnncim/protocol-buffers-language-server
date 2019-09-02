@@ -6,7 +6,8 @@ type Oneof struct {
 	protoOneofField *proto.Oneof
 
 	fieldNameToField map[string]*OneofField
-	lineToField      map[int]*OneofField
+
+	lineToField map[int]*OneofField
 }
 
 type OneofField struct {
@@ -18,7 +19,8 @@ func newOneof(protoOneofField *proto.Oneof) *Oneof {
 		protoOneofField: protoOneofField,
 
 		fieldNameToField: make(map[string]*OneofField),
-		lineToField:      make(map[int]*OneofField),
+
+		lineToField: make(map[int]*OneofField),
 	}
 
 	for _, e := range protoOneofField.Elements {
