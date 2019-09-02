@@ -3,7 +3,7 @@ package registry
 import "github.com/emicklei/proto"
 
 type Message struct {
-	protoMessage *proto.Message
+	ProtoMessage *proto.Message
 
 	fullyQualifiedName string
 
@@ -14,18 +14,18 @@ type Message struct {
 	oneofFieldNameToOneofField map[string]*Oneof
 	mapFieldNameToMapField     map[string]*MapField
 
-	lineToField      map[int]*MessageField
-	lineToOneofField map[int]*Oneof
-	lineToMapField   map[int]*MapField
+	LineToField      map[int]*MessageField
+	LineToOneofField map[int]*Oneof
+	LineToMapField   map[int]*MapField
 }
 
 type MessageField struct {
-	protoMessage *proto.NormalField
+	ProtoField *proto.NormalField
 }
 
 func newMessage(protoMessage *proto.Message) *Message {
 	m := &Message{
-		protoMessage: protoMessage,
+		ProtoMessage: protoMessage,
 
 		fullyQualifiedName: "",
 
@@ -36,9 +36,9 @@ func newMessage(protoMessage *proto.Message) *Message {
 		oneofFieldNameToOneofField: make(map[string]*Oneof),
 		mapFieldNameToMapField:     make(map[string]*MapField),
 
-		lineToField:      make(map[int]*MessageField),
-		lineToOneofField: make(map[int]*Oneof),
-		lineToMapField:   make(map[int]*MapField),
+		LineToField:      make(map[int]*MessageField),
+		LineToOneofField: make(map[int]*Oneof),
+		LineToMapField:   make(map[int]*MapField),
 	}
 
 	for _, e := range protoMessage.Elements {
@@ -48,19 +48,19 @@ func newMessage(protoMessage *proto.Message) *Message {
 			f := newMessageField(v)
 
 			m.fieldNameToField[v.Name] = f
-			m.lineToField[v.Position.Line] = f
+			m.LineToField[v.Position.Line] = f
 
 		case *proto.Oneof:
 			f := &Oneof{protoOneofField: v}
 
 			m.oneofFieldNameToOneofField[v.Name] = f
-			m.lineToOneofField[v.Position.Line] = f
+			m.LineToOneofField[v.Position.Line] = f
 
 		case *proto.MapField:
 			f := &MapField{protoMapField: v}
 
 			m.mapFieldNameToMapField[v.Name] = f
-			m.lineToMapField[v.Position.Line] = f
+			m.LineToMapField[v.Position.Line] = f
 
 		default:
 		}
@@ -71,6 +71,6 @@ func newMessage(protoMessage *proto.Message) *Message {
 
 func newMessageField(protoMessage *proto.NormalField) *MessageField {
 	return &MessageField{
-		protoMessage: protoMessage,
+		ProtoField: protoMessage,
 	}
 }

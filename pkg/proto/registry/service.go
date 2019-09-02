@@ -7,7 +7,7 @@ type Service struct {
 
 	rpcNameToRPC map[string]*RPC
 
-	lineToRPC map[int]*RPC
+	LineToRPC map[int]*RPC
 }
 
 func newService(protoService *proto.Service) *Service {
@@ -16,7 +16,7 @@ func newService(protoService *proto.Service) *Service {
 
 		rpcNameToRPC: make(map[string]*RPC),
 
-		lineToRPC: make(map[int]*RPC),
+		LineToRPC: make(map[int]*RPC),
 	}
 
 	for _, e := range protoService.Elements {
@@ -26,7 +26,7 @@ func newService(protoService *proto.Service) *Service {
 		}
 		r := newRPC(v)
 		s.rpcNameToRPC[v.Name] = r
-		s.lineToRPC[v.Position.Line] = r
+		s.LineToRPC[v.Position.Line] = r
 	}
 
 	return s

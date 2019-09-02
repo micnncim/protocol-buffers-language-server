@@ -9,7 +9,7 @@ type Enum struct {
 
 	fieldNameToValue map[string]*EnumField
 
-	lineToEnumField map[int]*EnumField
+	LineToEnumField map[int]*EnumField
 }
 
 type EnumField struct {
@@ -24,7 +24,7 @@ func newEnum(protoEnum *proto.Enum) *Enum {
 
 		fieldNameToValue: make(map[string]*EnumField),
 
-		lineToEnumField: make(map[int]*EnumField),
+		LineToEnumField: make(map[int]*EnumField),
 	}
 
 	for _, e := range protoEnum.Elements {
@@ -34,7 +34,7 @@ func newEnum(protoEnum *proto.Enum) *Enum {
 		}
 		f := newEnumField(v)
 		enum.fieldNameToValue[v.Name] = f
-		enum.lineToEnumField[v.Position.Line] = f
+		enum.LineToEnumField[v.Position.Line] = f
 	}
 
 	return enum
