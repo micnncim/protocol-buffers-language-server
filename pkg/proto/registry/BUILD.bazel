@@ -1,0 +1,20 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "doc.go",
+        "enum.go",
+        "field.go",
+        "map.go",
+        "message.go",
+        "oneof.go",
+        "package.go",
+        "proto.go",
+        "rpc.go",
+        "service.go",
+    ],
+    importpath = "github.com/example/project/pkg/proto/registry",
+    visibility = ["//visibility:public"],
+    deps = ["@com_github_emicklei_proto//:go_default_library"],
+)
