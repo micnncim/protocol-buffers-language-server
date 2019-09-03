@@ -1,6 +1,10 @@
 package registry
 
-import "github.com/emicklei/proto"
+import (
+	"sync"
+
+	"github.com/emicklei/proto"
+)
 
 type Service struct {
 	ProtoService *proto.Service
@@ -8,6 +12,8 @@ type Service struct {
 	RPCNameToRPC map[string]*RPC
 
 	LineToRPC map[int]*RPC
+
+	mu *sync.RWMutex
 }
 
 func NewService(protoService *proto.Service) *Service {

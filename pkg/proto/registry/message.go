@@ -1,6 +1,10 @@
 package registry
 
-import "github.com/emicklei/proto"
+import (
+	"sync"
+
+	"github.com/emicklei/proto"
+)
 
 type Message struct {
 	ProtoMessage *proto.Message
@@ -17,6 +21,8 @@ type Message struct {
 	LineToField      map[int]*MessageField
 	LineToOneofField map[int]*Oneof
 	LineToMapField   map[int]*MapField
+
+	mu *sync.RWMutex
 }
 
 type MessageField struct {

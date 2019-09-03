@@ -1,6 +1,10 @@
 package registry
 
-import "github.com/emicklei/proto"
+import (
+	"sync"
+
+	"github.com/emicklei/proto"
+)
 
 type Oneof struct {
 	ProtoOneofField *proto.Oneof
@@ -8,6 +12,8 @@ type Oneof struct {
 	FieldNameToField map[string]*OneofField
 
 	LineToField map[int]*OneofField
+
+	mu *sync.RWMutex
 }
 
 type OneofField struct {
