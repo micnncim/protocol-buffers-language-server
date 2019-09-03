@@ -1,23 +1,36 @@
 package registry
 
-import "github.com/emicklei/proto"
+import (
+	"sync"
 
-type Enum struct {
-	protoEnum *proto.Enum
+	protobuf "github.com/emicklei/proto"
+)
+
+// Enum is a registry for protobuf enum.
+type Enum interface {
+	Protobuf() *protobuf.Enum
+
+	GetFieldByName(name string) *EnumField
+
+	GetFieldByLine(line int) *EnumField
+}
+
+type enum struct {
+	protoEnum *protobuf.Enum
 
 	fullyQualifiedName string
 
 	fieldNameToValue map[string]*EnumField
 
 	lineToEnumField map[int]*EnumField
+
+	mu *sync.RWMutex
 }
 
-type EnumField struct {
-	protoEnumField *proto.EnumField
-}
+var _ Enum = (*enum)(nil)
 
-func newEnum(protoEnum *proto.Enum) *Enum {
-	enum := &Enum{
+func NewEnum(protoEnum *protobuf.Enum) Enum {
+	enum := &enum{
 		protoEnum: protoEnum,
 
 		fullyQualifiedName: "",
@@ -28,11 +41,11 @@ func newEnum(protoEnum *proto.Enum) *Enum {
 	}
 
 	for _, e := range protoEnum.Elements {
-		v, ok := e.(*proto.EnumField)
+		v, ok := e.(*protobuf.EnumField)
 		if !ok {
 			continue
 		}
-		f := newEnumField(v)
+		f := NewEnumField(v)
 		enum.fieldNameToValue[v.Name] = f
 		enum.lineToEnumField[v.Position.Line] = f
 	}
@@ -40,8 +53,35 @@ func newEnum(protoEnum *proto.Enum) *Enum {
 	return enum
 }
 
-func newEnumField(protoMessage *proto.EnumField) *EnumField {
+// Protobuf returns *protobuf.Enum.
+func (e *enum) Protobuf() *protobuf.Enum {
+	return e.protoEnum
+}
+
+// GetFieldByName gets EnumField  by provided name.
+// This ensures thread safety.
+func (e *enum) GetFieldByName(name string) *EnumField {
+	e.mu.RLock()
+	defer e.mu.RUnlock()
+
+	return e.fieldNameToValue[name]
+}
+
+// GetMapFieldByLine gets MapField by provided line.
+// This ensures thread safety.
+func (e *enum) GetFieldByLine(line int) *EnumField {
+	e.mu.RLock()
+	defer e.mu.RUnlock()
+
+	return e.lineToEnumField[line]
+}
+
+type EnumField struct {
+	ProtoEnumField *protobuf.EnumField
+}
+
+func NewEnumField(protoMessage *protobuf.EnumField) *EnumField {
 	return &EnumField{
-		protoEnumField: protoMessage,
+		ProtoEnumField: protoMessage,
 	}
 }

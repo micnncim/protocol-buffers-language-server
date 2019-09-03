@@ -1,21 +1,33 @@
 package registry
 
-import "github.com/emicklei/proto"
+import (
+	"sync"
 
-type Oneof struct {
-	protoOneofField *proto.Oneof
+	protobuf "github.com/emicklei/proto"
+)
+
+type Oneof interface {
+	Protobuf() *protobuf.Oneof
+
+	GetFieldByName(name string) *OneofField
+
+	GetFieldByLine(line int) *OneofField
+}
+
+type oneof struct {
+	protoOneofField *protobuf.Oneof
 
 	fieldNameToField map[string]*OneofField
 
 	lineToField map[int]*OneofField
+
+	mu *sync.RWMutex
 }
 
-type OneofField struct {
-	protoOneOfField *proto.OneOfField
-}
+var _ Oneof = (*oneof)(nil)
 
-func newOneof(protoOneofField *proto.Oneof) *Oneof {
-	oneof := &Oneof{
+func NewOneof(protoOneofField *protobuf.Oneof) Oneof {
+	oneof := &oneof{
 		protoOneofField: protoOneofField,
 
 		fieldNameToField: make(map[string]*OneofField),
@@ -24,11 +36,11 @@ func newOneof(protoOneofField *proto.Oneof) *Oneof {
 	}
 
 	for _, e := range protoOneofField.Elements {
-		v, ok := e.(*proto.OneOfField)
+		v, ok := e.(*protobuf.OneOfField)
 		if !ok {
 			continue
 		}
-		f := newOneofField(v)
+		f := NewOneofField(v)
 		oneof.fieldNameToField[v.Name] = f
 		oneof.lineToField[v.Position.Line] = f
 	}
@@ -36,8 +48,34 @@ func newOneof(protoOneofField *proto.Oneof) *Oneof {
 	return oneof
 }
 
-func newOneofField(protoOneOfField *proto.OneOfField) *OneofField {
+func (o *oneof) Protobuf() *protobuf.Oneof {
+	return o.protoOneofField
+}
+
+// GetFieldByName gets EnumField  by provided name.
+// This ensures thread safety.
+func (o *oneof) GetFieldByName(name string) *OneofField {
+	o.mu.RLock()
+	defer o.mu.RUnlock()
+
+	return o.fieldNameToField[name]
+}
+
+// GetFieldByName gets MapField by provided line.
+// This ensures thread safety.
+func (o *oneof) GetFieldByLine(line int) *OneofField {
+	o.mu.RLock()
+	defer o.mu.RUnlock()
+
+	return o.lineToField[line]
+}
+
+type OneofField struct {
+	ProtoOneOfField *protobuf.OneOfField
+}
+
+func NewOneofField(protoOneOfField *protobuf.OneOfField) *OneofField {
 	return &OneofField{
-		protoOneOfField: protoOneOfField,
+		ProtoOneOfField: protoOneOfField,
 	}
 }
