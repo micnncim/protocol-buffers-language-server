@@ -8,13 +8,14 @@ import (
 
 // ProtoSet is a registry for Proto.
 type ProtoSet interface {
+	Protos() []Proto
 	Append(proto *protobuf.Proto)
 
 	GetProtoByFilename(filename string) Proto
 }
 
 type protoSet struct {
-	Protos map[string]Proto
+	protos map[string]Proto
 
 	mu *sync.RWMutex
 }
@@ -24,12 +25,23 @@ var _ ProtoSet = (*protoSet)(nil)
 // NewProtoSet returns protoSet initialized by provided []*protobuf.Proto.
 func NewProtoSet(protos ...*protobuf.Proto) ProtoSet {
 	protoSet := &protoSet{
-		Protos: make(map[string]Proto),
+		protos: make(map[string]Proto),
 	}
 	for _, p := range protos {
-		protoSet.Protos[p.Filename] = NewProto(p)
+		protoSet.protos[p.Filename] = NewProto(p)
 	}
 	return protoSet
+}
+
+func (p *protoSet) Protos() []Proto {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+
+	protos := make([]Proto, 0, len(p.protos))
+	for _, proto := range p.protos {
+		protos = append(protos, proto)
+	}
+	return protos
 }
 
 // Append appends Proto to protoSet.
@@ -38,7 +50,7 @@ func (p *protoSet) Append(proto *protobuf.Proto) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
-	p.Protos[proto.Filename] = NewProto(proto)
+	p.protos[proto.Filename] = NewProto(proto)
 }
 
 // GetProtoByFilename gets Proto by provided Filename.
@@ -47,22 +59,25 @@ func (p *protoSet) GetProtoByFilename(filename string) Proto {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
 
-	return p.Protos[filename]
+	return p.protos[filename]
 }
 
 // Proto is a registry for protobuf proto.
 type Proto interface {
 	Protobuf() *protobuf.Proto
 
-	GetPackageByName(name string) *Package
-	GetMessageByName(name string) Message
-	GetEnumByName(name string) Enum
-	GetServiceByName(name string) Service
+	GetPackageByName(name string) (*Package, bool)
+	GetMessageByName(name string) (Message, bool)
+	GetEnumByName(name string) (Enum, bool)
+	GetServiceByName(name string) (Service, bool)
 
-	GetPackageByLine(line int) *Package
-	GetMessageByLine(line int) Message
-	GetEnumByLine(line int) Enum
-	GetServiceByLine(line int) Service
+	GetPackageByLine(line int) (*Package, bool)
+	GetMessageByLine(line int) (Message, bool)
+	GetEnumByLine(line int) (Enum, bool)
+	GetServiceByLine(line int) (Service, bool)
+
+	GetMessageFieldByLine(line int) (*MessageField, bool)
+	GetEnumFieldByLine(line int) (*EnumField, bool)
 }
 
 type proto struct {
@@ -136,72 +151,110 @@ func (p *proto) Protobuf() *protobuf.Proto {
 
 // GetPackageByName gets Package by provided name.
 // This ensures thread safety.
-func (p *proto) GetPackageByName(name string) *Package {
+func (p *proto) GetPackageByName(name string) (*Package, bool) {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
 
-	return p.packageNameToPackage[name]
+	pkg, ok := p.packageNameToPackage[name]
+	return pkg, ok
 }
 
 // GetMessageByName gets message by provided name.
 // This ensures thread safety.
-func (p *proto) GetMessageByName(name string) Message {
+func (p *proto) GetMessageByName(name string) (Message, bool) {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
 
-	return p.messageNameToMessage[name]
+	m, ok := p.messageNameToMessage[name]
+	return m, ok
 }
 
 // GetEnumByName gets enum by provided name.
 // This ensures thread safety.
-func (p *proto) GetEnumByName(name string) Enum {
+func (p *proto) GetEnumByName(name string) (Enum, bool) {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
 
-	return p.enumNameToEnum[name]
+	e, ok := p.enumNameToEnum[name]
+	return e, ok
 }
 
 // GetServiceByName gets service by provided name.
 // This ensures thread safety.
-func (p *proto) GetServiceByName(name string) Service {
+func (p *proto) GetServiceByName(name string) (Service, bool) {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
 
-	return p.serviceNameToService[name]
+	s, ok := p.serviceNameToService[name]
+	return s, ok
 }
 
 // GetPackageByLine gets Package by provided line.
 // This ensures thread safety.
-func (p *proto) GetPackageByLine(line int) *Package {
+func (p *proto) GetPackageByLine(line int) (*Package, bool) {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
 
-	return p.lineToPackage[line]
+	pkg, ok := p.lineToPackage[line]
+	return pkg, ok
 }
 
 // GetMessageByLine gets message by provided line.
 // This ensures thread safety.
-func (p *proto) GetMessageByLine(line int) Message {
+func (p *proto) GetMessageByLine(line int) (Message, bool) {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
 
-	return p.lineToMessage[line]
+	m, ok := p.lineToMessage[line]
+	return m, ok
 }
 
 // GetEnumByLine gets enum by provided line.
 // This ensures thread safety.
-func (p *proto) GetEnumByLine(line int) Enum {
+func (p *proto) GetEnumByLine(line int) (Enum, bool) {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
 
-	return p.lineToEnum[line]
+	e, ok := p.lineToEnum[line]
+	return e, ok
 }
 
 // GetServiceByLine gets service by provided line.
 // This ensures thread safety.
-func (p *proto) GetServiceByLine(line int) Service {
+func (p *proto) GetServiceByLine(line int) (Service, bool) {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
 
-	return p.lineToService[line]
+	s, ok := p.lineToService[line]
+	return s, ok
+}
+
+// GetMessageFieldByLine gets message field by provided line.
+// This ensures thread safety.
+func (p *proto) GetMessageFieldByLine(line int) (*MessageField, bool) {
+	p.mu.RLock()
+	defer p.mu.RUnlock()
+
+	for _, message := range p.lineToMessage {
+		f, ok := message.GetFieldByLine(line)
+		if ok {
+			return f, true
+		}
+	}
+	return nil, false
+}
+
+// GetEnumFieldByLine gets enum field by provided line.
+// This ensures thread safety.
+func (p *proto) GetEnumFieldByLine(line int) (*EnumField, bool) {
+	p.mu.RLock()
+	defer p.mu.RUnlock()
+
+	for _, enum := range p.lineToEnum {
+		f, ok := enum.GetFieldByLine(line)
+		if ok {
+			return f, true
+		}
+	}
+	return nil, false
 }

@@ -10,9 +10,9 @@ import (
 type Service interface {
 	Protobuf() *protobuf.Service
 
-	GetRPCByName(name string) *RPC
+	GetRPCByName(bool string) (*RPC, bool)
 
-	GetRPCByLine(line int) *RPC
+	GetRPCByLine(line int) (*RPC, bool)
 }
 
 type service struct {
@@ -57,20 +57,22 @@ func (s *service) Protobuf() *protobuf.Service {
 
 // GetRPCByName gets RPC by provided name.
 // This ensures thread safety.
-func (s *service) GetRPCByName(name string) *RPC {
+func (s *service) GetRPCByName(name string) (*RPC, bool) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	return s.rpcNameToRPC[name]
+	r, ok := s.rpcNameToRPC[name]
+	return r, ok
 }
 
 // GetRPCByLine gets RPC by provided line.
 // This ensures thread safety.
-func (s *service) GetRPCByLine(line int) *RPC {
+func (s *service) GetRPCByLine(line int) (*RPC, bool) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	return s.lineToRPC[line]
+	r, ok := s.lineToRPC[line]
+	return r, ok
 }
 
 // RPC is a registry for protobuf rpc.

@@ -9,16 +9,16 @@ import (
 type Message interface {
 	Protobuf() *protobuf.Message
 
-	GetNestedEnumByName(name string) Enum
-	GetNestedMessageByName(name string) Message
+	GetNestedEnumByName(name string) (Enum, bool)
+	GetNestedMessageByName(name string) (Message, bool)
 
-	GetFieldByName(name string) *MessageField
-	GetOneofFieldByName(name string) Oneof
-	GetMapFieldByName(name string) *MapField
+	GetFieldByName(name string) (*MessageField, bool)
+	GetOneofFieldByName(name string) (Oneof, bool)
+	GetMapFieldByName(name string) (*MapField, bool)
 
-	GetFieldByLine(line int) *MessageField
-	GetOneofFieldByLine(line int) Oneof
-	GetMapFieldByLine(line int) *MapField
+	GetFieldByLine(line int) (*MessageField, bool)
+	GetOneofFieldByLine(line int) (Oneof, bool)
+	GetMapFieldByLine(line int) (*MapField, bool)
 }
 
 type message struct {
@@ -95,74 +95,82 @@ func (m *message) Protobuf() *protobuf.Message {
 
 // GetNestedEnumByName gets enum by provided name.
 // This ensures thread safety.
-func (m *message) GetNestedEnumByName(name string) Enum {
+func (m *message) GetNestedEnumByName(name string) (Enum, bool) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 
-	return m.nestedEnumNameToEnum[name]
+	e, ok := m.nestedEnumNameToEnum[name]
+	return e, ok
 }
 
 // GetNestedMessageByName gets Message by provided name.
 // This ensures thread safety.
-func (m *message) GetNestedMessageByName(name string) Message {
+func (m *message) GetNestedMessageByName(name string) (Message, bool) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 
-	return m.nestedMessageNameToMessage[name]
+	msg, ok := m.nestedMessageNameToMessage[name]
+	return msg, ok
 }
 
 // GetFieldByName gets MessageField by provided name.
 // This ensures thread safety.
-func (m *message) GetFieldByName(name string) *MessageField {
+func (m *message) GetFieldByName(name string) (*MessageField, bool) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 
-	return m.fieldNameToField[name]
+	f, ok := m.fieldNameToField[name]
+	return f, ok
 }
 
 // GetFieldByName gets oneof by provided name.
 // This ensures thread safety.
-func (m *message) GetOneofFieldByName(name string) Oneof {
+func (m *message) GetOneofFieldByName(name string) (Oneof, bool) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 
-	return m.oneofFieldNameToOneofField[name]
+	f, ok := m.oneofFieldNameToOneofField[name]
+	return f, ok
 }
 
 // GetMapFieldByName gets MapField by provided name.
 // This ensures thread safety.
-func (m *message) GetMapFieldByName(name string) *MapField {
+func (m *message) GetMapFieldByName(name string) (*MapField, bool) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 
-	return m.mapFieldNameToMapField[name]
+	f, ok := m.mapFieldNameToMapField[name]
+	return f, ok
 }
 
 // GetFieldByLine gets MessageField by provided line.
 // This ensures thread safety.
-func (m *message) GetFieldByLine(line int) *MessageField {
+func (m *message) GetFieldByLine(line int) (*MessageField, bool) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 
-	return m.lineToField[line]
+	f, ok := m.lineToField[line]
+	return f, ok
 }
 
 // GetFieldByLine gets oneof by provided line.
 // This ensures thread safety.
-func (m *message) GetOneofFieldByLine(line int) Oneof {
+func (m *message) GetOneofFieldByLine(line int) (Oneof, bool) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 
-	return m.lineToOneofField[line]
+	f, ok := m.lineToOneofField[line]
+	return f, ok
 }
 
 // GetMapFieldByLine gets MapField by provided line.
 // This ensures thread safety.
-func (m *message) GetMapFieldByLine(line int) *MapField {
+func (m *message) GetMapFieldByLine(line int) (*MapField, bool) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 
-	return m.lineToMapField[line]
+	f, ok := m.lineToMapField[line]
+	return f, ok
 }
 
 type MessageField struct {
