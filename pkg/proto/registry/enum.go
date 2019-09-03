@@ -58,7 +58,7 @@ func (e *enum) Protobuf() *protobuf.Enum {
 	return e.protoEnum
 }
 
-// GetFieldByName gets EnumField  by provided name.
+// GetFieldByName gets EnumField by provided name.
 // This ensures thread safety.
 func (e *enum) GetFieldByName(name string) *EnumField {
 	e.mu.RLock()
