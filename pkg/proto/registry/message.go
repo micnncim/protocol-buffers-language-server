@@ -34,7 +34,7 @@ type message struct {
 	mapFieldNameToMapField     map[string]*MapField
 
 	lineToField      map[int]*MessageField
-	lineToOneofField map[int]*oneof
+	lineToOneofField map[int]Oneof
 	lineToMapField   map[int]*MapField
 
 	mu *sync.RWMutex
@@ -56,7 +56,7 @@ func NewMessage(protoMessage *protobuf.Message) *message {
 		mapFieldNameToMapField:     make(map[string]*MapField),
 
 		lineToField:      make(map[int]*MessageField),
-		lineToOneofField: make(map[int]*oneof),
+		lineToOneofField: make(map[int]Oneof),
 		lineToMapField:   make(map[int]*MapField),
 	}
 
