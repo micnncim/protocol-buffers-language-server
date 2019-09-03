@@ -3,22 +3,22 @@ package registry
 import "github.com/emicklei/proto"
 
 type Oneof struct {
-	protoOneofField *proto.Oneof
+	ProtoOneofField *proto.Oneof
 
-	fieldNameToField map[string]*OneofField
+	FieldNameToField map[string]*OneofField
 
 	LineToField map[int]*OneofField
 }
 
 type OneofField struct {
-	protoOneOfField *proto.OneOfField
+	ProtoOneOfField *proto.OneOfField
 }
 
-func newOneof(protoOneofField *proto.Oneof) *Oneof {
+func NewOneof(protoOneofField *proto.Oneof) *Oneof {
 	oneof := &Oneof{
-		protoOneofField: protoOneofField,
+		ProtoOneofField: protoOneofField,
 
-		fieldNameToField: make(map[string]*OneofField),
+		FieldNameToField: make(map[string]*OneofField),
 
 		LineToField: make(map[int]*OneofField),
 	}
@@ -28,16 +28,16 @@ func newOneof(protoOneofField *proto.Oneof) *Oneof {
 		if !ok {
 			continue
 		}
-		f := newOneofField(v)
-		oneof.fieldNameToField[v.Name] = f
+		f := NewOneofField(v)
+		oneof.FieldNameToField[v.Name] = f
 		oneof.LineToField[v.Position.Line] = f
 	}
 
 	return oneof
 }
 
-func newOneofField(protoOneOfField *proto.OneOfField) *OneofField {
+func NewOneofField(protoOneOfField *proto.OneOfField) *OneofField {
 	return &OneofField{
-		protoOneOfField: protoOneOfField,
+		ProtoOneOfField: protoOneOfField,
 	}
 }

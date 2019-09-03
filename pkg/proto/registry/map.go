@@ -3,11 +3,11 @@ package registry
 import "github.com/emicklei/proto"
 
 type MapField struct {
-	protoMapField *proto.MapField
+	ProtoMapField *proto.MapField
 }
 
-func newMapField(protoMapField *proto.MapField) *MapField {
+func NewMapField(protoMapField *proto.MapField) *MapField {
 	return &MapField{
-		protoMapField: protoMapField,
+		ProtoMapField: protoMapField,
 	}
 }

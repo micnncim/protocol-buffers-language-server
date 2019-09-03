@@ -3,26 +3,26 @@ package registry
 import "github.com/emicklei/proto"
 
 type Enum struct {
-	protoEnum *proto.Enum
+	ProtoEnum *proto.Enum
 
-	fullyQualifiedName string
+	FullyQualifiedName string
 
-	fieldNameToValue map[string]*EnumField
+	FieldNameToValue map[string]*EnumField
 
 	LineToEnumField map[int]*EnumField
 }
 
 type EnumField struct {
-	protoEnumField *proto.EnumField
+	ProtoEnumField *proto.EnumField
 }
 
-func newEnum(protoEnum *proto.Enum) *Enum {
+func NewEnum(protoEnum *proto.Enum) *Enum {
 	enum := &Enum{
-		protoEnum: protoEnum,
+		ProtoEnum: protoEnum,
 
-		fullyQualifiedName: "",
+		FullyQualifiedName: "",
 
-		fieldNameToValue: make(map[string]*EnumField),
+		FieldNameToValue: make(map[string]*EnumField),
 
 		LineToEnumField: make(map[int]*EnumField),
 	}
@@ -32,16 +32,16 @@ func newEnum(protoEnum *proto.Enum) *Enum {
 		if !ok {
 			continue
 		}
-		f := newEnumField(v)
-		enum.fieldNameToValue[v.Name] = f
+		f := NewEnumField(v)
+		enum.FieldNameToValue[v.Name] = f
 		enum.LineToEnumField[v.Position.Line] = f
 	}
 
 	return enum
 }
 
-func newEnumField(protoMessage *proto.EnumField) *EnumField {
+func NewEnumField(protoMessage *proto.EnumField) *EnumField {
 	return &EnumField{
-		protoEnumField: protoMessage,
+		ProtoEnumField: protoMessage,
 	}
 }

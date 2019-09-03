@@ -3,11 +3,11 @@ package registry
 import "github.com/emicklei/proto"
 
 type RPC struct {
-	protoRPC *proto.RPC
+	ProtoRPC *proto.RPC
 }
 
-func newRPC(protoRPC *proto.RPC) *RPC {
+func NewRPC(protoRPC *proto.RPC) *RPC {
 	return &RPC{
-		protoRPC: protoRPC,
+		ProtoRPC: protoRPC,
 	}
 }

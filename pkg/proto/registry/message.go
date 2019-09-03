@@ -5,14 +5,14 @@ import "github.com/emicklei/proto"
 type Message struct {
 	ProtoMessage *proto.Message
 
-	fullyQualifiedName string
+	FullyQualifiedName string
 
-	nestedEnumNameToEnum       map[string]*Enum
-	nestedMessageNameToMessage map[string]*Message
+	NestedEnumNameToEnum       map[string]*Enum
+	NestedMessageNameToMessage map[string]*Message
 
-	fieldNameToField           map[string]*MessageField
-	oneofFieldNameToOneofField map[string]*Oneof
-	mapFieldNameToMapField     map[string]*MapField
+	FieldNameToField           map[string]*MessageField
+	OneofFieldNameToOneofField map[string]*Oneof
+	MapFieldNameToMapField     map[string]*MapField
 
 	LineToField      map[int]*MessageField
 	LineToOneofField map[int]*Oneof
@@ -23,18 +23,18 @@ type MessageField struct {
 	ProtoField *proto.NormalField
 }
 
-func newMessage(protoMessage *proto.Message) *Message {
+func NewMessage(protoMessage *proto.Message) *Message {
 	m := &Message{
 		ProtoMessage: protoMessage,
 
-		fullyQualifiedName: "",
+		FullyQualifiedName: "",
 
-		nestedEnumNameToEnum:       make(map[string]*Enum),
-		nestedMessageNameToMessage: make(map[string]*Message),
+		NestedEnumNameToEnum:       make(map[string]*Enum),
+		NestedMessageNameToMessage: make(map[string]*Message),
 
-		fieldNameToField:           make(map[string]*MessageField),
-		oneofFieldNameToOneofField: make(map[string]*Oneof),
-		mapFieldNameToMapField:     make(map[string]*MapField),
+		FieldNameToField:           make(map[string]*MessageField),
+		OneofFieldNameToOneofField: make(map[string]*Oneof),
+		MapFieldNameToMapField:     make(map[string]*MapField),
 
 		LineToField:      make(map[int]*MessageField),
 		LineToOneofField: make(map[int]*Oneof),
@@ -45,21 +45,21 @@ func newMessage(protoMessage *proto.Message) *Message {
 		switch v := e.(type) {
 
 		case *proto.NormalField:
-			f := newMessageField(v)
+			f := NewMessageField(v)
 
-			m.fieldNameToField[v.Name] = f
+			m.FieldNameToField[v.Name] = f
 			m.LineToField[v.Position.Line] = f
 
 		case *proto.Oneof:
-			f := &Oneof{protoOneofField: v}
+			f := &Oneof{ProtoOneofField: v}
 
-			m.oneofFieldNameToOneofField[v.Name] = f
+			m.OneofFieldNameToOneofField[v.Name] = f
 			m.LineToOneofField[v.Position.Line] = f
 
 		case *proto.MapField:
-			f := &MapField{protoMapField: v}
+			f := &MapField{ProtoMapField: v}
 
-			m.mapFieldNameToMapField[v.Name] = f
+			m.MapFieldNameToMapField[v.Name] = f
 			m.LineToMapField[v.Position.Line] = f
 
 		default:
@@ -69,7 +69,7 @@ func newMessage(protoMessage *proto.Message) *Message {
 	return m
 }
 
-func newMessageField(protoMessage *proto.NormalField) *MessageField {
+func NewMessageField(protoMessage *proto.NormalField) *MessageField {
 	return &MessageField{
 		ProtoField: protoMessage,
 	}

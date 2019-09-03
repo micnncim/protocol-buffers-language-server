@@ -3,18 +3,18 @@ package registry
 import "github.com/emicklei/proto"
 
 type Service struct {
-	protoService *proto.Service
+	ProtoService *proto.Service
 
-	rpcNameToRPC map[string]*RPC
+	RPCNameToRPC map[string]*RPC
 
 	LineToRPC map[int]*RPC
 }
 
-func newService(protoService *proto.Service) *Service {
+func NewService(protoService *proto.Service) *Service {
 	s := &Service{
-		protoService: protoService,
+		ProtoService: protoService,
 
-		rpcNameToRPC: make(map[string]*RPC),
+		RPCNameToRPC: make(map[string]*RPC),
 
 		LineToRPC: make(map[int]*RPC),
 	}
@@ -24,8 +24,8 @@ func newService(protoService *proto.Service) *Service {
 		if !ok {
 			continue
 		}
-		r := newRPC(v)
-		s.rpcNameToRPC[v.Name] = r
+		r := NewRPC(v)
+		s.RPCNameToRPC[v.Name] = r
 		s.LineToRPC[v.Position.Line] = r
 	}
 

@@ -5,7 +5,7 @@ import (
 )
 
 type ProtoSet struct {
-	protos map[string]*Proto
+	Protos map[string]*Proto
 }
 
 type Proto struct {
@@ -24,16 +24,16 @@ type Proto struct {
 
 func NewProtoSet(protos ...*proto.Proto) *ProtoSet {
 	protoSet := &ProtoSet{
-		protos: make(map[string]*Proto),
+		Protos: make(map[string]*Proto),
 	}
 	for _, p := range protos {
-		protoSet.protos[p.Filename] = NewProto(p)
+		protoSet.Protos[p.Filename] = NewProto(p)
 	}
 	return protoSet
 }
 
 func (p *ProtoSet) Append(proto *proto.Proto) {
-	p.protos[proto.Filename] = NewProto(proto)
+	p.Protos[proto.Filename] = NewProto(proto)
 }
 
 func NewProto(protoProto *proto.Proto) *Proto {
@@ -55,22 +55,22 @@ func NewProto(protoProto *proto.Proto) *Proto {
 		switch v := el.(type) {
 
 		case *proto.Package:
-			pkg := newPackage(v)
+			pkg := NewPackage(v)
 			p.PackageNameToPackage[v.Name] = pkg
 			p.LineToPackage[v.Position.Line] = pkg
 
 		case *proto.Message:
-			m := newMessage(v)
+			m := NewMessage(v)
 			p.MessageNameToMessage[v.Name] = m
 			p.LineToMessage[v.Position.Line] = m
 
 		case *proto.Enum:
-			e := newEnum(v)
+			e := NewEnum(v)
 			p.EnumNameToEnum[v.Name] = e
 			p.LineToEnum[v.Position.Line] = e
 
 		case *proto.Service:
-			s := newService(v)
+			s := NewService(v)
 			p.ServiceNameToService[v.Name] = s
 			p.LineToService[v.Position.Line] = s
 
