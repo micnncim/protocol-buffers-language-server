@@ -714,7 +714,8 @@ go_repository(
 go_repository(
     name = "org_apache_git_thrift_git",
     importpath = "git.apache.org/thrift.git",
-    sum = "h1:OR8VhtwhcAI3U48/rzBsVOuHi0zDPzYI1xASVcdSgR8=",
+    replace = "github.com/apache/thrift",
+    sum = "h1:btlJ8oUpVIaJj+kl2yh/ACoII+MltLj1vukud/FwOvw=",
     version = "v0.0.0-20180902110319-2566ecd5d999",
 )
 
