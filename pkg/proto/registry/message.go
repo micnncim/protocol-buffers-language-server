@@ -70,13 +70,13 @@ func NewMessage(protoMessage *protobuf.Message) *message {
 			m.lineToField[v.Position.Line] = f
 
 		case *protobuf.Oneof:
-			f := &oneof{protoOneofField: v}
+			f := NewOneof(v)
 
 			m.oneofFieldNameToOneofField[v.Name] = f
 			m.lineToOneofField[v.Position.Line] = f
 
 		case *protobuf.MapField:
-			f := &MapField{ProtoMapField: v}
+			f := NewMapField(v)
 
 			m.mapFieldNameToMapField[v.Name] = f
 			m.lineToMapField[v.Position.Line] = f
