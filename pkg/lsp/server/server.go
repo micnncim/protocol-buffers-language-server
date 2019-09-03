@@ -4,6 +4,8 @@ import (
 	"context"
 	"sync"
 
+	"github.com/micnncim/protocol-buffers-language-server/pkg/proto/registry"
+
 	"go.uber.org/zap"
 
 	"github.com/go-language-server/jsonrpc2"
@@ -25,6 +27,8 @@ type Server struct {
 
 	state   state
 	stateMu *sync.RWMutex
+
+	protoSet registry.ProtoSet
 
 	logger *zap.Logger
 }
@@ -93,7 +97,7 @@ func (s *Server) Declaration(ctx context.Context, params *protocol.TextDocumentP
 }
 
 func (s *Server) Definition(ctx context.Context, params *protocol.TextDocumentPositionParams) (result []protocol.Location, err error) {
-	panic("not implement yet")
+	return s.definition(ctx, params)
 }
 
 func (s *Server) DidChange(ctx context.Context, params *protocol.DidChangeTextDocumentParams) (err error) {

@@ -2,7 +2,11 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
     name = "go_default_library",
-    srcs = ["doc.go"],
+    srcs = [
+        "doc.go",
+        "lsp.go",
+    ],
     importpath = "github.com/example/project/pkg/lsp",
     visibility = ["//visibility:public"],
+    deps = ["@com_github_go_language_server_protocol//:go_default_library"],
 )
