@@ -9,9 +9,9 @@ import (
 type Oneof interface {
 	Protobuf() *protobuf.Oneof
 
-	GetFieldByName(name string) *OneofField
+	GetFieldByName(name string) (*OneofField, bool)
 
-	GetFieldByLine(line int) *OneofField
+	GetFieldByLine(line int) (*OneofField, bool)
 }
 
 type oneof struct {
@@ -54,20 +54,22 @@ func (o *oneof) Protobuf() *protobuf.Oneof {
 
 // GetFieldByName gets EnumField  by provided name.
 // This ensures thread safety.
-func (o *oneof) GetFieldByName(name string) *OneofField {
+func (o *oneof) GetFieldByName(name string) (*OneofField, bool) {
 	o.mu.RLock()
 	defer o.mu.RUnlock()
 
-	return o.fieldNameToField[name]
+	f, ok := o.fieldNameToField[name]
+	return f, ok
 }
 
 // GetFieldByName gets MapField by provided line.
 // This ensures thread safety.
-func (o *oneof) GetFieldByLine(line int) *OneofField {
+func (o *oneof) GetFieldByLine(line int) (*OneofField, bool) {
 	o.mu.RLock()
 	defer o.mu.RUnlock()
 
-	return o.lineToField[line]
+	f, ok := o.lineToField[line]
+	return f, ok
 }
 
 type OneofField struct {

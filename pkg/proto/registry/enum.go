@@ -10,9 +10,9 @@ import (
 type Enum interface {
 	Protobuf() *protobuf.Enum
 
-	GetFieldByName(name string) *EnumField
+	GetFieldByName(name string) (*EnumField, bool)
 
-	GetFieldByLine(line int) *EnumField
+	GetFieldByLine(line int) (*EnumField, bool)
 }
 
 type enum struct {
@@ -60,20 +60,22 @@ func (e *enum) Protobuf() *protobuf.Enum {
 
 // GetFieldByName gets EnumField by provided name.
 // This ensures thread safety.
-func (e *enum) GetFieldByName(name string) *EnumField {
+func (e *enum) GetFieldByName(name string) (*EnumField, bool) {
 	e.mu.RLock()
 	defer e.mu.RUnlock()
 
-	return e.fieldNameToValue[name]
+	f, ok := e.fieldNameToValue[name]
+	return f, ok
 }
 
 // GetMapFieldByLine gets MapField by provided line.
 // This ensures thread safety.
-func (e *enum) GetFieldByLine(line int) *EnumField {
+func (e *enum) GetFieldByLine(line int) (*EnumField, bool) {
 	e.mu.RLock()
 	defer e.mu.RUnlock()
 
-	return e.lineToEnumField[line]
+	f, ok := e.lineToEnumField[line]
+	return f, ok
 }
 
 type EnumField struct {
