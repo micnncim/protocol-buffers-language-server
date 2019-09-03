@@ -8,13 +8,14 @@ import (
 
 // ProtoSet is a registry for Proto.
 type ProtoSet interface {
+	Protos() []Proto
 	Append(proto *protobuf.Proto)
 
 	GetProtoByFilename(filename string) Proto
 }
 
 type protoSet struct {
-	Protos map[string]Proto
+	protos map[string]Proto
 
 	mu *sync.RWMutex
 }
@@ -24,12 +25,23 @@ var _ ProtoSet = (*protoSet)(nil)
 // NewProtoSet returns protoSet initialized by provided []*protobuf.Proto.
 func NewProtoSet(protos ...*protobuf.Proto) ProtoSet {
 	protoSet := &protoSet{
-		Protos: make(map[string]Proto),
+		protos: make(map[string]Proto),
 	}
 	for _, p := range protos {
-		protoSet.Protos[p.Filename] = NewProto(p)
+		protoSet.protos[p.Filename] = NewProto(p)
 	}
 	return protoSet
+}
+
+func (p *protoSet) Protos() []Proto {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+
+	protos := make([]Proto, 0, len(p.protos))
+	for _, proto := range p.protos {
+		protos = append(protos, proto)
+	}
+	return protos
 }
 
 // Append appends Proto to protoSet.
@@ -38,7 +50,7 @@ func (p *protoSet) Append(proto *protobuf.Proto) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
-	p.Protos[proto.Filename] = NewProto(proto)
+	p.protos[proto.Filename] = NewProto(proto)
 }
 
 // GetProtoByFilename gets Proto by provided Filename.
@@ -47,7 +59,7 @@ func (p *protoSet) GetProtoByFilename(filename string) Proto {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
 
-	return p.Protos[filename]
+	return p.protos[filename]
 }
 
 // Proto is a registry for protobuf proto.
