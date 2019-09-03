@@ -92,6 +92,10 @@ func (s *Server) Declaration(ctx context.Context, params *protocol.TextDocumentP
 	panic("not implement yet")
 }
 
+func (s *Server) Definition(ctx context.Context, params *protocol.TextDocumentPositionParams) (result []protocol.Location, err error) {
+	panic("not implement yet")
+}
+
 func (s *Server) DidChange(ctx context.Context, params *protocol.DidChangeTextDocumentParams) (err error) {
 	panic("not implement yet")
 }
