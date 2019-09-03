@@ -75,6 +75,9 @@ type Proto interface {
 	GetMessageByLine(line int) (Message, bool)
 	GetEnumByLine(line int) (Enum, bool)
 	GetServiceByLine(line int) (Service, bool)
+
+	GetMessageFieldByLine(line int) (*MessageField, bool)
+	GetEnumFieldByLine(line int) (*EnumField, bool)
 }
 
 type proto struct {
@@ -224,4 +227,34 @@ func (p *proto) GetServiceByLine(line int) (Service, bool) {
 
 	s, ok := p.lineToService[line]
 	return s, ok
+}
+
+// GetMessageFieldByLine gets message field by provided line.
+// This ensures thread safety.
+func (p *proto) GetMessageFieldByLine(line int) (*MessageField, bool) {
+	p.mu.RLock()
+	defer p.mu.RUnlock()
+
+	for _, message := range p.lineToMessage {
+		f, ok := message.GetFieldByLine(line)
+		if ok {
+			return f, true
+		}
+	}
+	return nil, false
+}
+
+// GetEnumFieldByLine gets enum field by provided line.
+// This ensures thread safety.
+func (p *proto) GetEnumFieldByLine(line int) (*EnumField, bool) {
+	p.mu.RLock()
+	defer p.mu.RUnlock()
+
+	for _, enum := range p.lineToEnum {
+		f, ok := enum.GetFieldByLine(line)
+		if ok {
+			return f, true
+		}
+	}
+	return nil, false
 }
