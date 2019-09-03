@@ -3,46 +3,78 @@ package registry
 import (
 	"sync"
 
-	"github.com/emicklei/proto"
+	protobuf "github.com/emicklei/proto"
 )
 
-type Oneof struct {
-	ProtoOneofField *proto.Oneof
+type Oneof interface {
+	Protobuf() *protobuf.Oneof
 
-	FieldNameToField map[string]*OneofField
+	GetFieldByName(name string) *OneofField
 
-	LineToField map[int]*OneofField
+	GetFieldByLine(line int) *OneofField
+}
+
+type oneof struct {
+	protoOneofField *protobuf.Oneof
+
+	fieldNameToField map[string]*OneofField
+
+	lineToField map[int]*OneofField
 
 	mu *sync.RWMutex
 }
 
-type OneofField struct {
-	ProtoOneOfField *proto.OneOfField
-}
+var _ Oneof = (*oneof)(nil)
 
-func NewOneof(protoOneofField *proto.Oneof) *Oneof {
-	oneof := &Oneof{
-		ProtoOneofField: protoOneofField,
+func NewOneof(protoOneofField *protobuf.Oneof) Oneof {
+	oneof := &oneof{
+		protoOneofField: protoOneofField,
 
-		FieldNameToField: make(map[string]*OneofField),
+		fieldNameToField: make(map[string]*OneofField),
 
-		LineToField: make(map[int]*OneofField),
+		lineToField: make(map[int]*OneofField),
 	}
 
 	for _, e := range protoOneofField.Elements {
-		v, ok := e.(*proto.OneOfField)
+		v, ok := e.(*protobuf.OneOfField)
 		if !ok {
 			continue
 		}
 		f := NewOneofField(v)
-		oneof.FieldNameToField[v.Name] = f
-		oneof.LineToField[v.Position.Line] = f
+		oneof.fieldNameToField[v.Name] = f
+		oneof.lineToField[v.Position.Line] = f
 	}
 
 	return oneof
 }
 
-func NewOneofField(protoOneOfField *proto.OneOfField) *OneofField {
+func (o *oneof) Protobuf() *protobuf.Oneof {
+	return o.protoOneofField
+}
+
+// GetFieldByName gets EnumField  by provided name.
+// This ensures thread safety.
+func (o *oneof) GetFieldByName(name string) *OneofField {
+	o.mu.RLock()
+	defer o.mu.RUnlock()
+
+	return o.fieldNameToField[name]
+}
+
+// GetFieldByName gets MapField by provided line.
+// This ensures thread safety.
+func (o *oneof) GetFieldByLine(line int) *OneofField {
+	o.mu.RLock()
+	defer o.mu.RUnlock()
+
+	return o.lineToField[line]
+}
+
+type OneofField struct {
+	ProtoOneOfField *protobuf.OneOfField
+}
+
+func NewOneofField(protoOneOfField *protobuf.OneOfField) *OneofField {
 	return &OneofField{
 		ProtoOneOfField: protoOneOfField,
 	}

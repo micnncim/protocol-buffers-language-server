@@ -3,37 +3,84 @@ package registry
 import (
 	"sync"
 
-	"github.com/emicklei/proto"
+	protobuf "github.com/emicklei/proto"
 )
 
-type Service struct {
-	ProtoService *proto.Service
+// Service is a registry for protobuf service.
+type Service interface {
+	Protobuf() *protobuf.Service
 
-	RPCNameToRPC map[string]*RPC
+	GetRPCByName(name string) *RPC
 
-	LineToRPC map[int]*RPC
+	GetRPCByLine(line int) *RPC
+}
+
+type service struct {
+	protoService *protobuf.Service
+
+	rpcNameToRPC map[string]*RPC
+
+	lineToRPC map[int]*RPC
 
 	mu *sync.RWMutex
 }
 
-func NewService(protoService *proto.Service) *Service {
-	s := &Service{
-		ProtoService: protoService,
+var _ Service = (*service)(nil)
 
-		RPCNameToRPC: make(map[string]*RPC),
+// NewService returns Service initialized by provided []*protobuf.Service.
+func NewService(protoService *protobuf.Service) Service {
+	s := &service{
+		protoService: protoService,
 
-		LineToRPC: make(map[int]*RPC),
+		rpcNameToRPC: make(map[string]*RPC),
+
+		lineToRPC: make(map[int]*RPC),
 	}
 
 	for _, e := range protoService.Elements {
-		v, ok := e.(*proto.RPC)
+		v, ok := e.(*protobuf.RPC)
 		if !ok {
 			continue
 		}
 		r := NewRPC(v)
-		s.RPCNameToRPC[v.Name] = r
-		s.LineToRPC[v.Position.Line] = r
+		s.rpcNameToRPC[v.Name] = r
+		s.lineToRPC[v.Position.Line] = r
 	}
 
 	return s
+}
+
+// Protobuf returns *protobuf.Service.
+func (s *service) Protobuf() *protobuf.Service {
+	return s.protoService
+}
+
+// GetRPCByName gets RPC by provided name.
+// This ensures thread safety.
+func (s *service) GetRPCByName(name string) *RPC {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	return s.rpcNameToRPC[name]
+}
+
+// GetRPCByLine gets RPC by provided line.
+// This ensures thread safety.
+func (s *service) GetRPCByLine(line int) *RPC {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	return s.lineToRPC[line]
+}
+
+// RPC is a registry for protobuf rpc.
+type RPC struct {
+	ProtoRPC *protobuf.RPC
+}
+
+// NewRPC returns RPC initialized by provided []*protobuf.RPC.
+func NewRPC(protoRPC *protobuf.RPC) *RPC {
+	return &RPC{
+		ProtoRPC: protoRPC,
+	}
 }

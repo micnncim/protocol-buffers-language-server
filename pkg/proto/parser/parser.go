@@ -9,7 +9,7 @@ import (
 	"github.com/micnncim/protocol-buffers-language-server/pkg/proto/registry"
 )
 
-func ParseProtos(filenames ...string) (*registry.ProtoSet, error) {
+func ParseProtos(filenames ...string) (registry.ProtoSet, error) {
 	protoSet := registry.NewProtoSet()
 
 	var errs error

@@ -1,12 +1,14 @@
 package registry
 
-import "github.com/emicklei/proto"
+import protobuf "github.com/emicklei/proto"
 
+// Package is a registry for protobuf package.
 type Package struct {
-	ProtoPackage *proto.Package
+	ProtoPackage *protobuf.Package
 }
 
-func NewPackage(protoPackage *proto.Package) *Package {
+// NewPackage returns Package initialized by provided []*protobuf.Package.
+func NewPackage(protoPackage *protobuf.Package) *Package {
 	return &Package{
 		ProtoPackage: protoPackage,
 	}

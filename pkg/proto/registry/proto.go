@@ -3,20 +3,28 @@ package registry
 import (
 	"sync"
 
-	"github.com/emicklei/proto"
+	protobuf "github.com/emicklei/proto"
 )
 
 // ProtoSet is a registry for Proto.
-type ProtoSet struct {
-	Protos map[string]*Proto
+type ProtoSet interface {
+	Append(proto *protobuf.Proto)
+
+	GetProtoByFilename(filename string) Proto
+}
+
+type protoSet struct {
+	Protos map[string]Proto
 
 	mu *sync.RWMutex
 }
 
-// NewProtoSet returns ProtoSet initialized by provided []*proto.Proto.
-func NewProtoSet(protos ...*proto.Proto) *ProtoSet {
-	protoSet := &ProtoSet{
-		Protos: make(map[string]*Proto),
+var _ ProtoSet = (*protoSet)(nil)
+
+// NewProtoSet returns protoSet initialized by provided []*protobuf.Proto.
+func NewProtoSet(protos ...*protobuf.Proto) ProtoSet {
+	protoSet := &protoSet{
+		Protos: make(map[string]Proto),
 	}
 	for _, p := range protos {
 		protoSet.Protos[p.Filename] = NewProto(p)
@@ -24,9 +32,9 @@ func NewProtoSet(protos ...*proto.Proto) *ProtoSet {
 	return protoSet
 }
 
-// Append appends Proto to ProtoSet.
+// Append appends Proto to protoSet.
 // This ensures thread safety.
-func (p *ProtoSet) Append(proto *proto.Proto) {
+func (p *protoSet) Append(proto *protobuf.Proto) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
@@ -35,144 +43,165 @@ func (p *ProtoSet) Append(proto *proto.Proto) {
 
 // GetProtoByFilename gets Proto by provided Filename.
 // This ensures thread safety.
-func (p *ProtoSet) GetProtoByFilename(filename string) *Proto {
+func (p *protoSet) GetProtoByFilename(filename string) Proto {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
 
 	return p.Protos[filename]
 }
 
-// Proto is a registry for *proto.Proto.
-type Proto struct {
-	ProtoProto *proto.Proto
+// Proto is a registry for protobuf proto.
+type Proto interface {
+	Protobuf() *protobuf.Proto
 
-	PackageNameToPackage map[string]*Package
-	MessageNameToMessage map[string]*Message
-	EnumNameToEnum       map[string]*Enum
-	ServiceNameToService map[string]*Service
+	GetPackageByName(name string) *Package
+	GetMessageByName(name string) Message
+	GetEnumByName(name string) Enum
+	GetServiceByName(name string) Service
 
-	LineToPackage map[int]*Package
-	LineToMessage map[int]*Message
-	LineToEnum    map[int]*Enum
-	LineToService map[int]*Service
+	GetPackageByLine(line int) *Package
+	GetMessageByLine(line int) Message
+	GetEnumByLine(line int) Enum
+	GetServiceByLine(line int) Service
+}
+
+type proto struct {
+	protoProto *protobuf.Proto
+
+	packageNameToPackage map[string]*Package
+	messageNameToMessage map[string]Message
+	enumNameToEnum       map[string]Enum
+	serviceNameToService map[string]Service
+
+	lineToPackage map[int]*Package
+	lineToMessage map[int]Message
+	lineToEnum    map[int]Enum
+	lineToService map[int]Service
 
 	mu *sync.RWMutex
 }
 
-func NewProto(protoProto *proto.Proto) *Proto {
-	p := &Proto{
-		ProtoProto: protoProto,
+var _ Proto = (*proto)(nil)
 
-		PackageNameToPackage: make(map[string]*Package),
-		MessageNameToMessage: make(map[string]*Message),
-		EnumNameToEnum:       make(map[string]*Enum),
-		ServiceNameToService: make(map[string]*Service),
+func NewProto(protoProto *protobuf.Proto) Proto {
+	proto := &proto{
+		protoProto: protoProto,
 
-		LineToPackage: make(map[int]*Package),
-		LineToMessage: make(map[int]*Message),
-		LineToEnum:    make(map[int]*Enum),
-		LineToService: make(map[int]*Service),
+		packageNameToPackage: make(map[string]*Package),
+		messageNameToMessage: make(map[string]Message),
+		enumNameToEnum:       make(map[string]Enum),
+		serviceNameToService: make(map[string]Service),
+
+		lineToPackage: make(map[int]*Package),
+		lineToMessage: make(map[int]Message),
+		lineToEnum:    make(map[int]Enum),
+		lineToService: make(map[int]Service),
 	}
 
 	for _, el := range protoProto.Elements {
 		switch v := el.(type) {
 
-		case *proto.Package:
-			pkg := NewPackage(v)
-			p.PackageNameToPackage[v.Name] = pkg
-			p.LineToPackage[v.Position.Line] = pkg
+		case *protobuf.Package:
+			p := NewPackage(v)
+			proto.packageNameToPackage[v.Name] = p
+			proto.lineToPackage[v.Position.Line] = p
 
-		case *proto.Message:
+		case *protobuf.Message:
 			m := NewMessage(v)
-			p.MessageNameToMessage[v.Name] = m
-			p.LineToMessage[v.Position.Line] = m
+			proto.messageNameToMessage[v.Name] = m
+			proto.lineToMessage[v.Position.Line] = m
 
-		case *proto.Enum:
+		case *protobuf.Enum:
 			e := NewEnum(v)
-			p.EnumNameToEnum[v.Name] = e
-			p.LineToEnum[v.Position.Line] = e
+			proto.enumNameToEnum[v.Name] = e
+			proto.lineToEnum[v.Position.Line] = e
 
-		case *proto.Service:
+		case *protobuf.Service:
 			s := NewService(v)
-			p.ServiceNameToService[v.Name] = s
-			p.LineToService[v.Position.Line] = s
+			proto.serviceNameToService[v.Name] = s
+			proto.lineToService[v.Position.Line] = s
 
 		default:
 
 		}
 	}
 
-	return p
+	return proto
+}
+
+// Protobuf returns *protobuf.Proto.
+func (p *proto) Protobuf() *protobuf.Proto {
+	return p.protoProto
 }
 
 // GetPackageByName gets Package by provided name.
 // This ensures thread safety.
-func (p *Proto) GetPackageByName(name string) *Package {
+func (p *proto) GetPackageByName(name string) *Package {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
 
-	return p.PackageNameToPackage[name]
+	return p.packageNameToPackage[name]
 }
 
-// GetMessageByName gets Message by provided name.
+// GetMessageByName gets message by provided name.
 // This ensures thread safety.
-func (p *Proto) GetMessageByName(name string) *Message {
+func (p *proto) GetMessageByName(name string) Message {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
 
-	return p.MessageNameToMessage[name]
+	return p.messageNameToMessage[name]
 }
 
-// GetEnumByName gets Enum by provided name.
+// GetEnumByName gets enum by provided name.
 // This ensures thread safety.
-func (p *Proto) GetEnumByName(name string) *Enum {
+func (p *proto) GetEnumByName(name string) Enum {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
 
-	return p.EnumNameToEnum[name]
+	return p.enumNameToEnum[name]
 }
 
-// GetServiceByName gets Service by provided name.
+// GetServiceByName gets service by provided name.
 // This ensures thread safety.
-func (p *Proto) GetServiceByName(name string) *Service {
+func (p *proto) GetServiceByName(name string) Service {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
 
-	return p.ServiceNameToService[name]
+	return p.serviceNameToService[name]
 }
 
 // GetPackageByLine gets Package by provided line.
 // This ensures thread safety.
-func (p *Proto) GetPackageByLine(line int) *Package {
+func (p *proto) GetPackageByLine(line int) *Package {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
 
-	return p.LineToPackage[line]
+	return p.lineToPackage[line]
 }
 
-// GetMessageByLine gets Message by provided line.
+// GetMessageByLine gets message by provided line.
 // This ensures thread safety.
-func (p *Proto) GetMessageByLine(line int) *Message {
+func (p *proto) GetMessageByLine(line int) Message {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
 
-	return p.LineToMessage[line]
+	return p.lineToMessage[line]
 }
 
-// GetEnumByLine gets Enum by provided line.
+// GetEnumByLine gets enum by provided line.
 // This ensures thread safety.
-func (p *Proto) GetEnumByLine(line int) *Enum {
+func (p *proto) GetEnumByLine(line int) Enum {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
 
-	return p.LineToEnum[line]
+	return p.lineToEnum[line]
 }
 
-// GetServiceByLine gets Service by provided line.
+// GetServiceByLine gets service by provided line.
 // This ensures thread safety.
-func (p *Proto) GetServiceByLine(line int) *Service {
+func (p *proto) GetServiceByLine(line int) Service {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
 
-	return p.LineToService[line]
+	return p.lineToService[line]
 }

@@ -1,12 +1,12 @@
 package registry
 
-import "github.com/emicklei/proto"
+import protobuf "github.com/emicklei/proto"
 
 type MapField struct {
-	ProtoMapField *proto.MapField
+	ProtoMapField *protobuf.MapField
 }
 
-func NewMapField(protoMapField *proto.MapField) *MapField {
+func NewMapField(protoMapField *protobuf.MapField) *MapField {
 	return &MapField{
 		ProtoMapField: protoMapField,
 	}
