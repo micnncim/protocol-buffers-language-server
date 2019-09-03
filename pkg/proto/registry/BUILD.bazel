@@ -10,7 +10,6 @@ go_library(
         "oneof.go",
         "package.go",
         "proto.go",
-        "rpc.go",
         "service.go",
     ],
     importpath = "github.com/example/project/pkg/proto/registry",
