@@ -15,15 +15,16 @@ func (s *Server) definition(ctx context.Context, params *protocol.TextDocumentPo
 
 	uri := params.TextDocument.URI
 
-	p := s.protoSet.GetProtoByFilename(uri.Filename())
+	proto := s.protoSet.GetProtoByFilename(uri.Filename())
 
-	f, ok := p.GetMessageFieldByLine(int(params.Position.Line))
+	f, ok := proto.GetMessageFieldByLine(int(params.Position.Line))
 	if !ok {
 		s.logger.Info("field not found")
 		return
 	}
 	t := f.ProtoField.Type
-	m, ok := p.GetMessageByName(t)
+	// FIXME: Search imported proto files too for message.
+	m, ok := proto.GetMessageByName(t)
 	if !ok {
 		s.logger.Info("message not found")
 		return
@@ -32,6 +33,7 @@ func (s *Server) definition(ctx context.Context, params *protocol.TextDocumentPo
 
 	result = []protocol.Location{
 		{
+			// FIXME: Set proper file's uri.
 			URI: uri,
 			Range: protocol.Range{
 				Start: protocol.Position{
