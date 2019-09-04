@@ -43,6 +43,7 @@ type enum struct {
 
 var _ Enum = (*enum)(nil)
 
+// NewEnum returns Enum initialized by provided *protobuf.Enum.
 func NewEnum(protoEnum *protobuf.Enum) Enum {
 	enum := &enum{
 		protoEnum: protoEnum,
@@ -92,10 +93,12 @@ func (e *enum) GetFieldByLine(line int) (*EnumField, bool) {
 	return f, ok
 }
 
+// EnumField is a registry for protobuf enum field.
 type EnumField struct {
 	ProtoEnumField *protobuf.EnumField
 }
 
+// NewEnumField returns EnumField initialized by provided *protobuf.EnumField.
 func NewEnumField(protoMessage *protobuf.EnumField) *EnumField {
 	return &EnumField{
 		ProtoEnumField: protoMessage,

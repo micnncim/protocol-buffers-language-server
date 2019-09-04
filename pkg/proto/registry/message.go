@@ -20,6 +20,7 @@ import (
 	protobuf "github.com/emicklei/proto"
 )
 
+// Message is a registry for protobuf message.
 type Message interface {
 	Protobuf() *protobuf.Message
 
@@ -56,7 +57,8 @@ type message struct {
 
 var _ Message = (*message)(nil)
 
-func NewMessage(protoMessage *protobuf.Message) *message {
+// NewMessage returns Message initialized by provided *protobuf.Message.
+func NewMessage(protoMessage *protobuf.Message) Message {
 	m := &message{
 		protoMessage: protoMessage,
 
@@ -187,10 +189,12 @@ func (m *message) GetMapFieldByLine(line int) (*MapField, bool) {
 	return f, ok
 }
 
+// MessageField is a registry for protobuf message field.
 type MessageField struct {
 	ProtoField *protobuf.NormalField
 }
 
+// NewMessageField returns MessageField initialized by provided *protobuf.MessageField.
 func NewMessageField(protoMessage *protobuf.NormalField) *MessageField {
 	return &MessageField{
 		ProtoField: protoMessage,

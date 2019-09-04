@@ -23,6 +23,7 @@ import (
 	errors "golang.org/x/xerrors"
 )
 
+// NewLogger returns *zap.Logger initialized by provided log level and []zap.Option.
 func NewLogger(level string, opts ...zap.Option) (*zap.Logger, error) {
 	l, err := parseLogLevel(level)
 	if err != nil {

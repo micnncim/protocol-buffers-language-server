@@ -1,0 +1,13 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["registry.mock.go"],
+    importpath = "github.com/micnncim/protocol-buffers-language-server/pkg/proto/registry/registrytest",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//pkg/proto/registry:go_default_library",
+        "@com_github_emicklei_proto//:go_default_library",
+        "@com_github_golang_mock//gomock:go_default_library",
+    ],
+)

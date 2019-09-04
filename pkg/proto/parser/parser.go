@@ -23,6 +23,7 @@ import (
 	"github.com/micnncim/protocol-buffers-language-server/pkg/proto/registry"
 )
 
+// ParseProtos parses protobuf files from filenames and return registry.ProtoSet.
 func ParseProtos(filenames ...string) (registry.ProtoSet, error) {
 	protoSet := registry.NewProtoSet()
 
