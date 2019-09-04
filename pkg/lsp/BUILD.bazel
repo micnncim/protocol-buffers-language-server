@@ -3,6 +3,6 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 go_library(
     name = "go_default_library",
     srcs = ["doc.go"],
-    importpath = "github.com/example/project/pkg/lsp",
+    importpath = "github.com/micnncim/protocol-buffers-language-server/pkg/lsp",
     visibility = ["//visibility:public"],
 )

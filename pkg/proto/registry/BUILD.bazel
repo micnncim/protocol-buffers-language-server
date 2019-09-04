@@ -12,7 +12,7 @@ go_library(
         "proto.go",
         "service.go",
     ],
-    importpath = "github.com/example/project/pkg/proto/registry",
+    importpath = "github.com/micnncim/protocol-buffers-language-server/pkg/proto/registry",
     visibility = ["//visibility:public"],
     deps = ["@com_github_emicklei_proto//:go_default_library"],
 )
