@@ -1,4 +1,4 @@
-https://github.com/github/linguist#using-gitattributes
+# https://github.com/github/linguist#using-gitattributes
 **/doc.go linguist-documentation
 WORKSPACE linguist-detectable=false
 **/*.bazel linguist-detectable=false
