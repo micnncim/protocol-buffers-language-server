@@ -3,3 +3,11 @@ test --test_output=errors
 
 build:unit --features=race
 test:unit --features=race
+
+build --show_timestamps --verbose_failures
+test --test_output=errors --test_verbose_timeout_warnings
+
+# https://github.com/bazelbuild/rules_docker/issues/842
+build --host_force_python=PY2
+test --host_force_python=PY2
+run --host_force_python=PY2
