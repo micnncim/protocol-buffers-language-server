@@ -3,11 +3,11 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 go_library(
     name = "go_default_library",
     srcs = ["parser.go"],
-    importpath = "github.com/example/project/pkg/proto/parser",
+    importpath = "github.com/micnncim/protocol-buffers-language-server/pkg/proto/parser",
     visibility = ["//visibility:public"],
     deps = [
+        "//pkg/proto/registry:go_default_library",
         "@com_github_emicklei_proto//:go_default_library",
-        "@com_github_micnncim_protocol_buffers_language_server//pkg/proto/registry:go_default_library",
         "@org_uber_go_multierr//:go_default_library",
     ],
 )

@@ -6,7 +6,7 @@ go_library(
         "doc.go",
         "logging.go",
     ],
-    importpath = "github.com/example/project/pkg/logging",
+    importpath = "github.com/micnncim/protocol-buffers-language-server/pkg/logging",
     visibility = ["//visibility:public"],
     deps = [
         "@org_golang_x_xerrors//:go_default_library",

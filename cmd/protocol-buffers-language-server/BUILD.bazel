@@ -3,7 +3,7 @@ load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 go_library(
     name = "go_default_library",
     srcs = ["main.go"],
-    importpath = "github.com/example/project/cmd/protocol-buffers-language-server",
+    importpath = "github.com/micnncim/protocol-buffers-language-server/cmd/protocol-buffers-language-server",
     visibility = ["//visibility:private"],
 )
 
