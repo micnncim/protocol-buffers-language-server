@@ -8,9 +8,7 @@ import (
 	errors "golang.org/x/xerrors"
 )
 
-// Initialize resolves Initialize Request.
-// https://microsoft.github.io/language-server-protocol/specification#initialize
-func (s *Server) Initialize(ctx context.Context, params *protocol.InitializeParams) (result *protocol.InitializeResult, err error) {
+func (s *Server) initialize(ctx context.Context, params *protocol.InitializeParams) (result *protocol.InitializeResult, err error) {
 	s.stateMu.RLock()
 	state := s.state
 	s.stateMu.RUnlock()
@@ -49,18 +47,14 @@ func (s *Server) Initialize(ctx context.Context, params *protocol.InitializePara
 	return
 }
 
-// Initialized resolves Initialized Notification.
-// https://microsoft.github.io/language-server-protocol/specification#initialized
-func (s *Server) Initialized(ctx context.Context, params *protocol.InitializedParams) (err error) {
+func (s *Server) initialized(ctx context.Context, params *protocol.InitializedParams) (err error) {
 	s.stateMu.Lock()
 	s.state = stateInitialized
 	s.stateMu.Unlock()
 	return
 }
 
-// Shutdown resolves Shutdown Request.
-// https://microsoft.github.io/language-server-protocol/specification#shutdown
-func (s *Server) Shutdown(ctx context.Context) (err error) {
+func (s *Server) shutdown(ctx context.Context) (err error) {
 	s.stateMu.RLock()
 	state := s.state
 	s.stateMu.RUnlock()
@@ -74,9 +68,7 @@ func (s *Server) Shutdown(ctx context.Context) (err error) {
 	return
 }
 
-// Exit resolves Exit Notification.
-// https://microsoft.github.io/language-server-protocol/specification#exit
-func (s *Server) Exit(ctx context.Context) (err error) {
+func (s *Server) exit(ctx context.Context) (err error) {
 	s.stateMu.RLock()
 	defer s.stateMu.RUnlock()
 	if s.state != stateShutdown {
