@@ -112,6 +112,7 @@ type proto struct {
 
 var _ Proto = (*proto)(nil)
 
+// NewProto returns Proto initialized by provided *protobuf.Proto.
 func NewProto(protoProto *protobuf.Proto) Proto {
 	proto := &proto{
 		protoProto: protoProto,

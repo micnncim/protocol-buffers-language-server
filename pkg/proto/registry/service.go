@@ -41,7 +41,7 @@ type service struct {
 
 var _ Service = (*service)(nil)
 
-// NewService returns Service initialized by provided []*protobuf.Service.
+// NewService returns Service initialized by provided *protobuf.Service.
 func NewService(protoService *protobuf.Service) Service {
 	s := &service{
 		protoService: protoService,
@@ -94,7 +94,7 @@ type RPC struct {
 	ProtoRPC *protobuf.RPC
 }
 
-// NewRPC returns RPC initialized by provided []*protobuf.RPC.
+// NewRPC returns RPC initialized by provided *protobuf.RPC.
 func NewRPC(protoRPC *protobuf.RPC) *RPC {
 	return &RPC{
 		ProtoRPC: protoRPC,

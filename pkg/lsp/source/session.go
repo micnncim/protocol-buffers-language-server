@@ -75,6 +75,7 @@ type session struct {
 	openFilesMu *sync.RWMutex
 }
 
+// NewSession returns Session.
 func NewSession() Session {
 	return &session{
 		id:          sessionIndex.Add(1),

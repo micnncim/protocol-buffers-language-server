@@ -20,6 +20,7 @@ import (
 	protobuf "github.com/emicklei/proto"
 )
 
+// Oneof is a registry for protobuf oneof.
 type Oneof interface {
 	Protobuf() *protobuf.Oneof
 
@@ -40,6 +41,7 @@ type oneof struct {
 
 var _ Oneof = (*oneof)(nil)
 
+// NewOneof returns Oneof initialized by provided *protobuf.Oneof.
 func NewOneof(protoOneofField *protobuf.Oneof) Oneof {
 	oneof := &oneof{
 		protoOneofField: protoOneofField,
@@ -62,6 +64,7 @@ func NewOneof(protoOneofField *protobuf.Oneof) Oneof {
 	return oneof
 }
 
+// Protobuf returns *protobuf.Oneof.
 func (o *oneof) Protobuf() *protobuf.Oneof {
 	return o.protoOneofField
 }
@@ -86,10 +89,12 @@ func (o *oneof) GetFieldByLine(line int) (*OneofField, bool) {
 	return f, ok
 }
 
+// OneofField is a registry for protobuf oneof field.
 type OneofField struct {
 	ProtoOneOfField *protobuf.OneOfField
 }
 
+// NewOneofField returns OneofField initialized by provided *protobuf.OneofField.
 func NewOneofField(protoOneOfField *protobuf.OneOfField) *OneofField {
 	return &OneofField{
 		ProtoOneOfField: protoOneOfField,

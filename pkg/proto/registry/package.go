@@ -21,7 +21,7 @@ type Package struct {
 	ProtoPackage *protobuf.Package
 }
 
-// NewPackage returns Package initialized by provided []*protobuf.Package.
+// NewPackage returns Package initialized by provided *protobuf.Package.
 func NewPackage(protoPackage *protobuf.Package) *Package {
 	return &Package{
 		ProtoPackage: protoPackage,
