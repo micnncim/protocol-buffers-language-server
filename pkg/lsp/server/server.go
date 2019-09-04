@@ -68,6 +68,30 @@ func (s *Server) Run(ctx context.Context) (err error) {
 	return s.Conn.Run(ctx)
 }
 
+// Initialize implements initialize method.
+// https://microsoft.github.io/language-server-protocol/specification#initialize
+func (s *Server) Initialize(ctx context.Context, params *protocol.InitializeParams) (result *protocol.InitializeResult, err error) {
+	return s.initialize(ctx, params)
+}
+
+// Initialized implements initialized method.
+// https://microsoft.github.io/language-server-protocol/specification#initialized
+func (s *Server) Initialized(ctx context.Context, params *protocol.InitializedParams) (err error) {
+	return s.initialized(ctx, params)
+}
+
+// Shutdown implements shutdown method.
+// https://microsoft.github.io/language-server-protocol/specification#shutdown
+func (s *Server) Shutdown(ctx context.Context) (err error) {
+	return s.shutdown(ctx)
+}
+
+// Exit implements exit method.
+// https://microsoft.github.io/language-server-protocol/specification#exit
+func (s *Server) Exit(ctx context.Context) (err error) {
+	return s.exit(ctx)
+}
+
 func (s *Server) CodeAction(ctx context.Context, params *protocol.CodeActionParams) (result []protocol.CodeAction, err error) {
 	panic("not implement yet")
 }
@@ -96,6 +120,8 @@ func (s *Server) Declaration(ctx context.Context, params *protocol.TextDocumentP
 	panic("not implement yet")
 }
 
+// Definition implements textDocument/definition method.
+// https://microsoft.github.io/language-server-protocol/specification#textDocument_definition
 func (s *Server) Definition(ctx context.Context, params *protocol.TextDocumentPositionParams) (result []protocol.Location, err error) {
 	return s.definition(ctx, params)
 }
