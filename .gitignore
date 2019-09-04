@@ -4,3 +4,7 @@
 /bazel-out
 /bazel-protocol-buffers-language-server
 /bazel-testlogs
+
+*.pb.go
+*.pb.validate.go
+*.mock.go
