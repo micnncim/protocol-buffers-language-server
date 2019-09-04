@@ -1,0 +1,14 @@
+Protocol Buffers Language Server
+
+===============
+
+This product contains a modified part of gopls, distributed by The Go Authors:
+
+  - License: https://github.com/golang/tools/blob/master/LICENSE
+  - Homepage: https://github.com/golang/tools
+
+
+This product contains a modified part of bazel_gomock, distributed by Jeff Hodges:
+
+  - License: https://github.com/jmhodges/bazel_gomock/blob/master/LICENSE (MIT)
+  - Homepage: https://github.com/jmhodges/bazel_gomock
