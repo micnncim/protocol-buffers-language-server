@@ -1,0 +1,4 @@
+https://github.com/github/linguist#using-gitattributes
+WORKSPACE linguist-detectable=false
+*.bazel linguist-detectable=false
+*.bzl linguist-detectable=false
