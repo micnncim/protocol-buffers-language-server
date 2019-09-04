@@ -15,7 +15,7 @@ REPOSITORY=$2
 OS="$(go env GOHOSTOS)"
 ARCH="$(go env GOARCH)"
 
-echo -e ">>> Exposing Go generated files"
+printf "\e[32;1m>>> Exposing Go generated files\n\e[m"
 
 expose_package () {
 	local out_path=$1
@@ -26,8 +26,9 @@ expose_package () {
     # Delete all old links
 	for f in ${old_links}; do
 		if [[ -f "${f}" ]]; then
-			echo ">>> Deleting old link: ${f}"
-			rm ${f}
+			# shellcheck disable=SC2059
+			printf "\e[32;1m>>> Deleting old link: ${f}\n\e[m"
+			rm "${f}"
 		fi
 	done
 
@@ -43,19 +44,17 @@ expose_package () {
 		if [[ -f "${f}" ]]; then
 			found=1
             local base=${f##*/}
-            echo ">>> Adding a new link: ${package}/${base}"
+            printf "\e[32;1m>>> Adding a new link: ${package}/${base}\n\e[m"
 			ln -nsf "${relative_path}${f}" "${package}/"
 		fi
 	done
 	if [[ "${found}" == "0" ]]; then
-		echo ">>> Error: No generated file was found inside ${out_path} for the package ${package}"
+		printf "\e[32;1m>>> Error: No generated file was found inside ${out_path} for the package ${package}\n\e[m"
 		exit 1
 	fi
 }
 
-####################
 # For proto go files
-####################
 
 for label in $(bazel query 'kind(go_proto_library, //...)'); do
 	bazel build "${label}"
@@ -74,3 +73,26 @@ for label in $(bazel query 'kind(go_proto_library, //...)'); do
 	generated_files=$(eval echo "${out_path}"/*.pb.go)
 	expose_package "${out_path}" "${package}" old_links generated_files
 done
+
+# For mock go files
+
+# Build mock go files
+for label in $(bazel query 'kind(gomock, //...)'); do
+	bazel build "${label}"
+done
+
+# Link to the generated files and add them to excluding list in the root BUILD file.
+for package in $(bazel query 'kind(gomock, //...)' --output package); do
+	# Compute the path where Bazel puts the files.
+	out_path="bazel-bin/${package}"
+
+	# shellcheck disable=SC2125
+	old_links=${package}/*.mock.go
+	# shellcheck disable=SC2125
+	generated_files=${out_path}/*.mock.go
+	expose_package "${out_path}" "${package}" old_links generated_files
+done
+
+# Reset the root BUILD file
+cat "${GENERATED_BUILD_FILE}" > "${BUILD_FILE}"
+rm "${GENERATED_BUILD_FILE}"
