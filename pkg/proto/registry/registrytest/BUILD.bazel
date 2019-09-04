@@ -10,6 +10,7 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//pkg/proto/registry:go_default_library",
+        "@com_github_emicklei_proto//:go_default_library",
         "@com_github_golang_mock//gomock:go_default_library",
     ],
 )
