@@ -71,22 +71,20 @@ func (o *oneof) Protobuf() *protobuf.Oneof {
 
 // GetFieldByName gets EnumField  by provided name.
 // This ensures thread safety.
-func (o *oneof) GetFieldByName(name string) (*OneofField, bool) {
+func (o *oneof) GetFieldByName(name string) (f *OneofField, ok bool) {
 	o.mu.RLock()
-	defer o.mu.RUnlock()
-
-	f, ok := o.fieldNameToField[name]
-	return f, ok
+	f, ok = o.fieldNameToField[name]
+	o.mu.RUnlock()
+	return
 }
 
 // GetFieldByName gets MapField by provided line.
 // This ensures thread safety.
-func (o *oneof) GetFieldByLine(line int) (*OneofField, bool) {
+func (o *oneof) GetFieldByLine(line int) (f *OneofField, ok bool) {
 	o.mu.RLock()
-	defer o.mu.RUnlock()
-
-	f, ok := o.lineToField[line]
-	return f, ok
+	f, ok = o.lineToField[line]
+	o.mu.RUnlock()
+	return
 }
 
 // OneofField is a registry for protobuf oneof field.
