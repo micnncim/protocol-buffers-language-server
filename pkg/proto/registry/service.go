@@ -71,22 +71,20 @@ func (s *service) Protobuf() *protobuf.Service {
 
 // GetRPCByName gets RPC by provided name.
 // This ensures thread safety.
-func (s *service) GetRPCByName(name string) (*RPC, bool) {
+func (s *service) GetRPCByName(name string) (r *RPC, ok bool) {
 	s.mu.RLock()
-	defer s.mu.RUnlock()
-
-	r, ok := s.rpcNameToRPC[name]
-	return r, ok
+	r, ok = s.rpcNameToRPC[name]
+	s.mu.RUnlock()
+	return
 }
 
 // GetRPCByLine gets RPC by provided line.
 // This ensures thread safety.
-func (s *service) GetRPCByLine(line int) (*RPC, bool) {
+func (s *service) GetRPCByLine(line int) (r *RPC, ok bool) {
 	s.mu.RLock()
-	defer s.mu.RUnlock()
-
-	r, ok := s.lineToRPC[line]
-	return r, ok
+	r, ok = s.lineToRPC[line]
+	s.mu.RUnlock()
+	return
 }
 
 // RPC is a registry for protobuf rpc.

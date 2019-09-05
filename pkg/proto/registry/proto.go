@@ -25,7 +25,7 @@ type ProtoSet interface {
 	Protos() []Proto
 	Append(proto *protobuf.Proto)
 
-	GetProtoByFilename(filename string) Proto
+	GetProtoByFilename(filename string) (Proto, bool)
 }
 
 type protoSet struct {
@@ -69,11 +69,11 @@ func (p *protoSet) Append(proto *protobuf.Proto) {
 
 // GetProtoByFilename gets Proto by provided Filename.
 // This ensures thread safety.
-func (p *protoSet) GetProtoByFilename(filename string) Proto {
+func (p *protoSet) GetProtoByFilename(filename string) (pr Proto, ok bool) {
 	p.mu.RLock()
-	defer p.mu.RUnlock()
-
-	return p.protos[filename]
+	pr, ok = p.protos[filename]
+	p.mu.RUnlock()
+	return
 }
 
 // Proto is a registry for protobuf proto.
@@ -166,110 +166,102 @@ func (p *proto) Protobuf() *protobuf.Proto {
 
 // GetPackageByName gets Package by provided name.
 // This ensures thread safety.
-func (p *proto) GetPackageByName(name string) (*Package, bool) {
+func (p *proto) GetPackageByName(name string) (pkg *Package, ok bool) {
 	p.mu.RLock()
-	defer p.mu.RUnlock()
-
-	pkg, ok := p.packageNameToPackage[name]
-	return pkg, ok
+	pkg, ok = p.packageNameToPackage[name]
+	p.mu.RUnlock()
+	return
 }
 
 // GetMessageByName gets message by provided name.
 // This ensures thread safety.
-func (p *proto) GetMessageByName(name string) (Message, bool) {
+func (p *proto) GetMessageByName(name string) (m Message, ok bool) {
 	p.mu.RLock()
-	defer p.mu.RUnlock()
-
-	m, ok := p.messageNameToMessage[name]
-	return m, ok
+	m, ok = p.messageNameToMessage[name]
+	p.mu.RUnlock()
+	return
 }
 
 // GetEnumByName gets enum by provided name.
 // This ensures thread safety.
-func (p *proto) GetEnumByName(name string) (Enum, bool) {
+func (p *proto) GetEnumByName(name string) (e Enum, ok bool) {
 	p.mu.RLock()
-	defer p.mu.RUnlock()
-
-	e, ok := p.enumNameToEnum[name]
-	return e, ok
+	e, ok = p.enumNameToEnum[name]
+	p.mu.RUnlock()
+	return
 }
 
 // GetServiceByName gets service by provided name.
 // This ensures thread safety.
-func (p *proto) GetServiceByName(name string) (Service, bool) {
+func (p *proto) GetServiceByName(name string) (s Service, ok bool) {
 	p.mu.RLock()
-	defer p.mu.RUnlock()
-
-	s, ok := p.serviceNameToService[name]
-	return s, ok
+	s, ok = p.serviceNameToService[name]
+	p.mu.RUnlock()
+	return
 }
 
 // GetPackageByLine gets Package by provided line.
 // This ensures thread safety.
-func (p *proto) GetPackageByLine(line int) (*Package, bool) {
+func (p *proto) GetPackageByLine(line int) (pkg *Package, ok bool) {
 	p.mu.RLock()
-	defer p.mu.RUnlock()
-
-	pkg, ok := p.lineToPackage[line]
-	return pkg, ok
+	pkg, ok = p.lineToPackage[line]
+	p.mu.RUnlock()
+	return
 }
 
 // GetMessageByLine gets message by provided line.
 // This ensures thread safety.
-func (p *proto) GetMessageByLine(line int) (Message, bool) {
+func (p *proto) GetMessageByLine(line int) (m Message, ok bool) {
 	p.mu.RLock()
-	defer p.mu.RUnlock()
-
-	m, ok := p.lineToMessage[line]
-	return m, ok
+	m, ok = p.lineToMessage[line]
+	p.mu.RUnlock()
+	return
 }
 
 // GetEnumByLine gets enum by provided line.
 // This ensures thread safety.
-func (p *proto) GetEnumByLine(line int) (Enum, bool) {
+func (p *proto) GetEnumByLine(line int) (e Enum, ok bool) {
 	p.mu.RLock()
-	defer p.mu.RUnlock()
-
-	e, ok := p.lineToEnum[line]
-	return e, ok
+	e, ok = p.lineToEnum[line]
+	p.mu.RUnlock()
+	return
 }
 
 // GetServiceByLine gets service by provided line.
 // This ensures thread safety.
-func (p *proto) GetServiceByLine(line int) (Service, bool) {
+func (p *proto) GetServiceByLine(line int) (s Service, ok bool) {
 	p.mu.RLock()
-	defer p.mu.RUnlock()
-
-	s, ok := p.lineToService[line]
-	return s, ok
+	s, ok = p.lineToService[line]
+	p.mu.RUnlock()
+	return
 }
 
 // GetMessageFieldByLine gets message field by provided line.
 // This ensures thread safety.
-func (p *proto) GetMessageFieldByLine(line int) (*MessageField, bool) {
+func (p *proto) GetMessageFieldByLine(line int) (f *MessageField, ok bool) {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
 
 	for _, message := range p.lineToMessage {
-		f, ok := message.GetFieldByLine(line)
+		f, ok = message.GetFieldByLine(line)
 		if ok {
-			return f, true
+			return
 		}
 	}
-	return nil, false
+	return
 }
 
 // GetEnumFieldByLine gets enum field by provided line.
 // This ensures thread safety.
-func (p *proto) GetEnumFieldByLine(line int) (*EnumField, bool) {
+func (p *proto) GetEnumFieldByLine(line int) (f *EnumField, ok bool) {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
 
 	for _, enum := range p.lineToEnum {
-		f, ok := enum.GetFieldByLine(line)
+		f, ok = enum.GetFieldByLine(line)
 		if ok {
-			return f, true
+			return
 		}
 	}
-	return nil, false
+	return
 }

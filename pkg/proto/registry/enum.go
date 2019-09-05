@@ -75,22 +75,20 @@ func (e *enum) Protobuf() *protobuf.Enum {
 
 // GetFieldByName gets EnumField by provided name.
 // This ensures thread safety.
-func (e *enum) GetFieldByName(name string) (*EnumField, bool) {
+func (e *enum) GetFieldByName(name string) (f *EnumField, ok bool) {
 	e.mu.RLock()
-	defer e.mu.RUnlock()
-
-	f, ok := e.fieldNameToValue[name]
-	return f, ok
+	f, ok = e.fieldNameToValue[name]
+	e.mu.RUnlock()
+	return
 }
 
 // GetMapFieldByLine gets MapField by provided line.
 // This ensures thread safety.
-func (e *enum) GetFieldByLine(line int) (*EnumField, bool) {
+func (e *enum) GetFieldByLine(line int) (f *EnumField, ok bool) {
 	e.mu.RLock()
-	defer e.mu.RUnlock()
-
-	f, ok := e.lineToEnumField[line]
-	return f, ok
+	f, ok = e.lineToEnumField[line]
+	e.mu.RUnlock()
+	return
 }
 
 // EnumField is a registry for protobuf enum field.

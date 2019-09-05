@@ -111,82 +111,74 @@ func (m *message) Protobuf() *protobuf.Message {
 
 // GetNestedEnumByName gets enum by provided name.
 // This ensures thread safety.
-func (m *message) GetNestedEnumByName(name string) (Enum, bool) {
+func (m *message) GetNestedEnumByName(name string) (e Enum, ok bool) {
 	m.mu.RLock()
-	defer m.mu.RUnlock()
-
-	e, ok := m.nestedEnumNameToEnum[name]
-	return e, ok
+	e, ok = m.nestedEnumNameToEnum[name]
+	m.mu.RUnlock()
+	return
 }
 
 // GetNestedMessageByName gets Message by provided name.
 // This ensures thread safety.
-func (m *message) GetNestedMessageByName(name string) (Message, bool) {
+func (m *message) GetNestedMessageByName(name string) (msg Message, ok bool) {
 	m.mu.RLock()
-	defer m.mu.RUnlock()
-
-	msg, ok := m.nestedMessageNameToMessage[name]
-	return msg, ok
+	msg, ok = m.nestedMessageNameToMessage[name]
+	m.mu.RUnlock()
+	return
 }
 
 // GetFieldByName gets MessageField by provided name.
 // This ensures thread safety.
-func (m *message) GetFieldByName(name string) (*MessageField, bool) {
+func (m *message) GetFieldByName(name string) (f *MessageField, ok bool) {
 	m.mu.RLock()
-	defer m.mu.RUnlock()
-
-	f, ok := m.fieldNameToField[name]
-	return f, ok
+	f, ok = m.fieldNameToField[name]
+	m.mu.RUnlock()
+	return
 }
 
 // GetFieldByName gets oneof by provided name.
 // This ensures thread safety.
-func (m *message) GetOneofFieldByName(name string) (Oneof, bool) {
+func (m *message) GetOneofFieldByName(name string) (f Oneof, ok bool) {
 	m.mu.RLock()
-	defer m.mu.RUnlock()
-
-	f, ok := m.oneofFieldNameToOneofField[name]
+	f, ok = m.oneofFieldNameToOneofField[name]
+	m.mu.RUnlock()
 	return f, ok
 }
 
 // GetMapFieldByName gets MapField by provided name.
 // This ensures thread safety.
-func (m *message) GetMapFieldByName(name string) (*MapField, bool) {
+func (m *message) GetMapFieldByName(name string) (f *MapField, ok bool) {
 	m.mu.RLock()
-	defer m.mu.RUnlock()
-
-	f, ok := m.mapFieldNameToMapField[name]
-	return f, ok
+	f, ok = m.mapFieldNameToMapField[name]
+	m.mu.RUnlock()
+	return
 }
 
 // GetFieldByLine gets MessageField by provided line.
 // This ensures thread safety.
-func (m *message) GetFieldByLine(line int) (*MessageField, bool) {
+func (m *message) GetFieldByLine(line int) (f *MessageField, ok bool) {
 	m.mu.RLock()
-	defer m.mu.RUnlock()
-
-	f, ok := m.lineToField[line]
-	return f, ok
+	f, ok = m.lineToField[line]
+	m.mu.RUnlock()
+	return
 }
 
 // GetFieldByLine gets oneof by provided line.
 // This ensures thread safety.
-func (m *message) GetOneofFieldByLine(line int) (Oneof, bool) {
+func (m *message) GetOneofFieldByLine(line int) (f Oneof, ok bool) {
 	m.mu.RLock()
-	defer m.mu.RUnlock()
-
-	f, ok := m.lineToOneofField[line]
-	return f, ok
+	f, ok = m.lineToOneofField[line]
+	m.mu.RUnlock()
+	return
 }
 
 // GetMapFieldByLine gets MapField by provided line.
 // This ensures thread safety.
-func (m *message) GetMapFieldByLine(line int) (*MapField, bool) {
+func (m *message) GetMapFieldByLine(line int) (f *MapField, ok bool) {
 	m.mu.RLock()
-	defer m.mu.RUnlock()
-
-	f, ok := m.lineToMapField[line]
-	return f, ok
+	f, ok = m.lineToMapField[line]
+	m.mu.RUnlock()
+	return
 }
 
 // MessageField is a registry for protobuf message field.
