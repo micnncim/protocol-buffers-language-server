@@ -182,8 +182,8 @@ go_repository(
 go_repository(
     name = "com_github_golang_mock",
     importpath = "github.com/golang/mock",
-    sum = "h1:28o5sBqPkBsMGnC6b4MvE2TzSr5/AT4c/1fLqVGIwlk=",
-    version = "v1.2.0",
+    sum = "h1:qGJ6qTW+x6xX/my+8YUVl4WNpX9B7+/l2tRsHGZ7f2s=",
+    version = "v1.3.1",
 )
 
 go_repository(
@@ -813,8 +813,8 @@ go_repository(
 go_repository(
     name = "org_golang_x_sync",
     importpath = "golang.org/x/sync",
-    sum = "h1:bjcUS9ztw9kFmmIxJInhon/0Is3p+EHBKNgquIzo1OI=",
-    version = "v0.0.0-20190227155943-e225da77a7e6",
+    sum = "h1:8gQV6CLnAEikrhgkHFbMAEhagSSnXWGV915qUMm9mrU=",
+    version = "v0.0.0-20190423024810-112230192c58",
 )
 
 go_repository(
@@ -841,8 +841,8 @@ go_repository(
 go_repository(
     name = "org_golang_x_tools",
     importpath = "golang.org/x/tools",
-    sum = "h1:vamGzbGri8IKo20MQncCuljcQ5uAO6kaCeawQPVblAI=",
-    version = "v0.0.0-20190226205152-f727befe758c",
+    sum = "h1:qsl9y/CJx34tuA7QCPNp86JNJe4spst6Ff8MjvPUdPg=",
+    version = "v0.0.0-20190425150028-36563e24a262",
 )
 
 go_repository(
