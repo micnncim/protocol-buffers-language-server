@@ -29,19 +29,25 @@ func (s *Server) definition(ctx context.Context, params *protocol.TextDocumentPo
 
 	uri := params.TextDocument.URI
 
-	p := s.protoSet.GetProtoByFilename(uri.Filename())
+	p, ok := s.protoSet.GetProtoByFilename(uri.Filename())
+	if !ok {
+		s.logger.Info("file not found", zap.String("filename", uri.Filename()))
+		return
+	}
 
 	f, ok := p.GetMessageFieldByLine(int(params.Position.Line))
 	if !ok {
 		s.logger.Info("field not found")
 		return
 	}
+
 	t := f.ProtoField.Type
 	m, ok := p.GetMessageByName(t)
 	if !ok {
 		s.logger.Info("message not found")
 		return
 	}
+
 	line, column := m.Protobuf().Position.Line, m.Protobuf().Position.Column
 
 	result = []protocol.Location{
