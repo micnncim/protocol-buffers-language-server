@@ -62,9 +62,8 @@ func (p *protoSet) Protos() []Proto {
 // This ensures thread safety.
 func (p *protoSet) Append(proto *protobuf.Proto) {
 	p.mu.Lock()
-	defer p.mu.Unlock()
-
 	p.protos[proto.Filename] = NewProto(proto)
+	p.mu.Unlock()
 }
 
 // GetProtoByFilename gets Proto by provided Filename.
