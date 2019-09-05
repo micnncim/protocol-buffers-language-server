@@ -18,12 +18,11 @@ import (
 	"context"
 	"sync"
 
-	"github.com/micnncim/protocol-buffers-language-server/pkg/proto/registry"
-
-	"go.uber.org/zap"
-
 	"github.com/go-language-server/jsonrpc2"
 	"github.com/go-language-server/protocol"
+	"go.uber.org/zap"
+
+	"github.com/micnncim/protocol-buffers-language-server/pkg/proto/registry"
 )
 
 type state int
