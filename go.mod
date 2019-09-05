@@ -6,7 +6,7 @@ require (
 	github.com/emicklei/proto v1.6.15
 	github.com/go-language-server/jsonrpc2 v0.2.5
 	github.com/go-language-server/protocol v0.4.2
-	github.com/go-language-server/uri v0.1.2
+	github.com/go-language-server/uri v0.2.0
 	github.com/golang/mock v1.3.1
 	go.uber.org/atomic v1.4.0
 	go.uber.org/multierr v1.1.1-0.20190429210458-bd075f90b08f
