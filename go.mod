@@ -1,6 +1,6 @@
 module github.com/micnncim/protocol-buffers-language-server
 
-go 1.12
+go 1.13
 
 require (
 	github.com/emicklei/proto v1.6.15
