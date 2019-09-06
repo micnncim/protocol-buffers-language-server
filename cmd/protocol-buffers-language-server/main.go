@@ -41,12 +41,12 @@ var (
 )
 
 func main() {
-	cnf, err := config.New()
+	cfg, err := config.New()
 	if err != nil {
 		exit(err)
 	}
 
-	logger, err := logging.NewLogger(cnf.Env.LogLevel)
+	logger, err := logging.NewLogger(cfg.Env.LogLevel)
 	if err != nil {
 		exit(err)
 	}
