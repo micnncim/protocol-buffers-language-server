@@ -14,7 +14,7 @@
 
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
-## Go 1.13
+## Go
 
 http_archive(
     name = "io_bazel_rules_go",
@@ -29,7 +29,7 @@ load("@io_bazel_rules_go//go:deps.bzl", "go_rules_dependencies", "go_register_to
 
 go_rules_dependencies()
 
-go_register_toolchains()
+go_register_toolchains(go_version = "1.13")
 
 ## gazelle
 
@@ -45,6 +45,34 @@ http_archive(
 load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies", "go_repository")
 
 gazelle_dependencies()
+
+## buildtools
+
+http_archive(
+    name = "com_github_bazelbuild_buildtools",
+    strip_prefix = "buildtools-0.28.0",
+    url = "https://github.com/bazelbuild/buildtools/archive/0.28.0.zip",
+)
+
+load(
+    "@com_github_bazelbuild_buildtools//buildifier:deps.bzl",
+    "buildifier_dependencies",
+)
+
+buildifier_dependencies()
+
+## protobuf
+
+http_archive(
+    name = "com_google_protobuf",
+    sha256 = "2ee9dcec820352671eb83e081295ba43f7a4157181dad549024d7070d079cf65",
+    strip_prefix = "protobuf-3.9.0",
+    urls = ["https://github.com/protocolbuffers/protobuf/archive/v3.9.0.tar.gz"],
+)
+
+load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
+
+protobuf_deps()
 
 # gazelle:repository_macro bazel/deps.bzl%go_repositories
 

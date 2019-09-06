@@ -16,3 +16,12 @@ load("@bazel_gazelle//:def.bzl", "gazelle")
 
 # gazelle:prefix github.com/micnncim/protocol-buffers-language-server
 gazelle(name = "gazelle")
+
+load("@com_github_bazelbuild_buildtools//buildifier:def.bzl", "buildifier")
+
+buildifier(
+    name = "buildifier",
+    exclude_patterns = [
+        "./docs/*",
+    ],
+)
