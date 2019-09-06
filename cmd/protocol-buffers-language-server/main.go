@@ -14,5 +14,75 @@
 
 package main
 
+import (
+	"context"
+	"fmt"
+	"os"
+
+	"github.com/alecthomas/kingpin"
+	"github.com/go-language-server/jsonrpc2"
+
+	"github.com/micnncim/protocol-buffers-language-server/pkg/config"
+	"github.com/micnncim/protocol-buffers-language-server/pkg/logging"
+	"github.com/micnncim/protocol-buffers-language-server/pkg/lsp/server"
+	"github.com/micnncim/protocol-buffers-language-server/pkg/lsp/source"
+)
+
+var (
+	logfile = kingpin.Flag("logfile", "Filename to log.").String()
+	address = kingpin.Flag("address", "Address on run server. Use for debugging purposes.").String()
+	port    = kingpin.Flag("port", "Port on run server. Use for debugging purposes.").Int()
+	debug   = kingpin.Flag("debug", "Enable debug mode.").Bool()
+)
+
+var (
+	stdout = os.Stdout
+	stderr = os.Stderr
+)
+
 func main() {
+	cnf, err := config.New()
+	if err != nil {
+		exit(err)
+	}
+
+	logger, err := logging.NewLogger(cnf.Env.LogLevel)
+	if err != nil {
+		exit(err)
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	session := source.NewSession()
+
+	if err := runServer(ctx, session, server.WithLogger(logger)); err != nil {
+		exit(err)
+	}
+}
+
+func runServer(ctx context.Context, session source.Session, opts ...server.Option) error {
+	run := func(srv *server.Server) {
+		go srv.Run(ctx)
+	}
+
+	if *address != "" {
+		return server.RunServerOnAddress(ctx, session, *address, run)
+	}
+
+	if *port != 0 {
+		return server.RunServerOnPort(ctx, session, *port, run)
+	}
+
+	stream := jsonrpc2.NewStream(stdout, stderr)
+	srv := server.New(ctx, session, stream)
+
+	return srv.Run(ctx)
+}
+
+func exit(err error) {
+	if err == nil {
+		return
+	}
+	fmt.Fprint(stderr, err)
+	os.Exit(1)
 }

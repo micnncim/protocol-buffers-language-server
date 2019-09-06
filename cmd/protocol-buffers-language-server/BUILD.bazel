@@ -19,6 +19,14 @@ go_library(
     srcs = ["main.go"],
     importpath = "github.com/micnncim/protocol-buffers-language-server/cmd/protocol-buffers-language-server",
     visibility = ["//visibility:private"],
+    deps = [
+        "//pkg/config:go_default_library",
+        "//pkg/logging:go_default_library",
+        "//pkg/lsp/server:go_default_library",
+        "//pkg/lsp/source:go_default_library",
+        "@com_github_alecthomas_kingpin//:go_default_library",
+        "@com_github_go_language_server_jsonrpc2//:go_default_library",
+    ],
 )
 
 go_binary(
