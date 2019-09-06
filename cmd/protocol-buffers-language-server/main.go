@@ -40,7 +40,6 @@ func init() {
 	kingpin.Flag("loglevel", "Level of logging.").Default("info").StringVar(&cfg.Log.Level)
 	kingpin.Flag("address", "Address on run server. Use for debugging purposes.").StringVar(&cfg.Server.Address)
 	kingpin.Flag("port", "Port on run server. Use for debugging purposes.").IntVar(&cfg.Server.Port)
-	kingpin.Flag("debug", "Enable debug mode.").BoolVar(&cfg.Server.Debug)
 }
 
 func main() {
@@ -66,15 +65,15 @@ func runServer(ctx context.Context, session source.Session, opts ...server.Optio
 	}
 
 	if address := cfg.Server.Address; address != "" {
-		return server.RunServerOnAddress(ctx, session, address, run)
+		return server.RunServerOnAddress(ctx, session, address, run, opts...)
 	}
 
 	if port := cfg.Server.Port; port != 0 {
-		return server.RunServerOnPort(ctx, session, port, run)
+		return server.RunServerOnPort(ctx, session, port, run, opts...)
 	}
 
 	stream := jsonrpc2.NewStream(stdout, stderr)
-	srv := server.New(ctx, session, stream)
+	srv := server.New(ctx, session, stream, opts...)
 
 	return srv.Run(ctx)
 }

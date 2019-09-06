@@ -86,13 +86,13 @@ func New(ctx context.Context, session source.Session, stream jsonrpc2.Stream, op
 
 // RunServerOnPort starts a server on the given port and does not exit.
 // This function exists for debugging purposes.
-func RunServerOnPort(ctx context.Context, session source.Session, port int, handler func(s *Server)) error {
-	return RunServerOnAddress(ctx, session, fmt.Sprintf(":%v", port), handler)
+func RunServerOnPort(ctx context.Context, session source.Session, port int, handler func(s *Server), opts ...Option) error {
+	return RunServerOnAddress(ctx, session, fmt.Sprintf(":%v", port), handler, opts...)
 }
 
 // RunServerOnPort starts a server on the given port and does not exit.
 // This function exists for debugging purposes.
-func RunServerOnAddress(ctx context.Context, session source.Session, addr string, handler func(s *Server)) error {
+func RunServerOnAddress(ctx context.Context, session source.Session, addr string, handler func(s *Server), opts ...Option) error {
 	ln, err := net.Listen("tcp", addr)
 	if err != nil {
 		return err
@@ -102,7 +102,7 @@ func RunServerOnAddress(ctx context.Context, session source.Session, addr string
 		if err != nil {
 			return err
 		}
-		handler(New(ctx, session, jsonrpc2.NewStream(conn, conn)))
+		handler(New(ctx, session, jsonrpc2.NewStream(conn, conn), opts...))
 	}
 }
 

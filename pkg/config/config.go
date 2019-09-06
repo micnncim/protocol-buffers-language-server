@@ -35,10 +35,10 @@ type Config struct {
 type Env struct {
 }
 
+// Server represents a configuration for server.
 type Server struct {
 	Address string
 	Port    int
-	Debug   bool
 }
 
 // Log represents a configuration for zap.Logger.
@@ -47,9 +47,10 @@ type Log struct {
 	Level string
 }
 
-func newEnv() (e *Env, err error) {
-	if err = envconfig.Process(envPrefix, e); err != nil {
-		return
+func newEnv() (Env, error) {
+	env := Env{}
+	if err := envconfig.Process(envPrefix, env); err != nil {
+		return Env{}, nil
 	}
-	return
+	return env, nil
 }
