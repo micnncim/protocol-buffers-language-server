@@ -19,24 +19,24 @@ test:
 .PHONY: dep
 dep:
 	GO111MODULE=on go mod tidy
-	bazel run //:gazelle
-	bazel run //:gazelle -- update-repos -from_file=go.mod -to_macro=bazel/deps.bzl%go_repositories
+	bazelisk run //:gazelle
+	bazelisk run //:gazelle -- update-repos -from_file=go.mod -to_macro=bazel/deps.bzl%go_repositories
 
 .PHONY: bazel-build
 bazel-build:
-	bazel build //...
+	bazelisk build //...
 
 .PHONY: bazel-test
 bazel-test:
-	bazel test //...
+	bazelisk test //...
 
 .PHONY: buildifier
 buildifier:
-	bazel run //:buildifier
+	bazelisk run //:buildifier
 
 .PHONY: bazel-clean
 bazel-clean:
-	bazel clean
+	bazelisk clean
 
 .PHONY: coverage
 coverage:
