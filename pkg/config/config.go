@@ -26,23 +26,25 @@ const envPrefix = "PROTOBUF_LSP"
 
 // Config represents a configuration for server.
 type Config struct {
-	Env *Env
-}
-
-// New returns a new Config.
-func New() (*Config, error) {
-	cnf := &Config{}
-	env, err := newEnv()
-	if err != nil {
-		return nil, err
-	}
-	cnf.Env = env
-	return cnf, nil
+	Env    Env
+	Server Server
+	Log    Log
 }
 
 // Env represents a environment variables for server.
 type Env struct {
-	LogLevel string `envconfig:"LOG_LEVEL" default:"info"`
+}
+
+type Server struct {
+	Address string
+	Port    int
+	Debug   bool
+}
+
+// Log represents a configuration for zap.Logger.
+type Log struct {
+	File  string
+	Level string
 }
 
 func newEnv() (e *Env, err error) {

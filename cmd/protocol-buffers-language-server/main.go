@@ -29,24 +29,24 @@ import (
 )
 
 var (
-	logfile = kingpin.Flag("logfile", "Filename to log.").String()
-	address = kingpin.Flag("address", "Address on run server. Use for debugging purposes.").String()
-	port    = kingpin.Flag("port", "Port on run server. Use for debugging purposes.").Int()
-	debug   = kingpin.Flag("debug", "Enable debug mode.").Bool()
-)
-
-var (
 	stdout = os.Stdout
 	stderr = os.Stderr
 )
 
-func main() {
-	cfg, err := config.New()
-	if err != nil {
-		exit(err)
-	}
+var cfg config.Config
 
-	logger, err := logging.NewLogger(cfg.Env.LogLevel)
+func init() {
+	kingpin.Flag("logfile", "Filename to log.").StringVar(&cfg.Log.File)
+	kingpin.Flag("loglevel", "Level of logging.").Default("info").StringVar(&cfg.Log.Level)
+	kingpin.Flag("address", "Address on run server. Use for debugging purposes.").StringVar(&cfg.Server.Address)
+	kingpin.Flag("port", "Port on run server. Use for debugging purposes.").IntVar(&cfg.Server.Port)
+	kingpin.Flag("debug", "Enable debug mode.").BoolVar(&cfg.Server.Debug)
+}
+
+func main() {
+	kingpin.Parse()
+
+	logger, err := logging.NewLogger(cfg.Log)
 	if err != nil {
 		exit(err)
 	}
@@ -65,12 +65,12 @@ func runServer(ctx context.Context, session source.Session, opts ...server.Optio
 		go srv.Run(ctx)
 	}
 
-	if *address != "" {
-		return server.RunServerOnAddress(ctx, session, *address, run)
+	if address := cfg.Server.Address; address != "" {
+		return server.RunServerOnAddress(ctx, session, address, run)
 	}
 
-	if *port != 0 {
-		return server.RunServerOnPort(ctx, session, *port, run)
+	if port := cfg.Server.Port; port != 0 {
+		return server.RunServerOnPort(ctx, session, port, run)
 	}
 
 	stream := jsonrpc2.NewStream(stdout, stderr)

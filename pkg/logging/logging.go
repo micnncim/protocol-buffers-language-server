@@ -21,20 +21,21 @@ import (
 
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
+
+	"github.com/micnncim/protocol-buffers-language-server/pkg/config"
 )
 
 // NewLogger returns *zap.Logger initialized by provided log level and []zap.Option.
-func NewLogger(level string, opts ...zap.Option) (*zap.Logger, error) {
-	l, err := parseLogLevel(level)
+func NewLogger(cfg config.Log, opts ...zap.Option) (*zap.Logger, error) {
+	c, err := newConfig(cfg)
 	if err != nil {
 		return nil, err
 	}
-	return newConfig(zap.NewAtomicLevelAt(l)).Build(opts...)
+	return c.Build(opts...)
 }
 
-func newConfig(l zap.AtomicLevel) zap.Config {
-	return zap.Config{
-		Level:             l,
+func newConfig(cfg config.Log) (zap.Config, error) {
+	c := zap.Config{
 		Development:       false,
 		DisableCaller:     false,
 		DisableStacktrace: false,
@@ -59,6 +60,19 @@ func newConfig(l zap.AtomicLevel) zap.Config {
 		OutputPaths:      []string{"stdout"},
 		ErrorOutputPaths: []string{"stderr"},
 	}
+
+	l, err := parseLogLevel(cfg.Level)
+	if err != nil {
+		return zap.Config{}, err
+	}
+	c.Level = zap.NewAtomicLevelAt(l)
+
+	if f := cfg.File; f == "" {
+		c.OutputPaths = []string{f}
+		c.ErrorOutputPaths = []string{f}
+	}
+
+	return c, nil
 }
 
 func logTimeEncoder(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
