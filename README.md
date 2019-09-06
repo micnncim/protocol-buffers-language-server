@@ -1,4 +1,4 @@
-# Protocol Buffers Language Server
+![](docs/assets/logo.png)
 
 [![License][license-badge]][license]
 [![CircleCI][circleci-badge]][circleci]
