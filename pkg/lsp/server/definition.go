@@ -29,20 +29,31 @@ func (s *Server) definition(ctx context.Context, params *protocol.TextDocumentPo
 
 	uri := params.TextDocument.URI
 
-	p, ok := s.protoSet.GetProtoByFilename(uri.Filename())
+	view, ok := s.session.ViewOf(uri)
+	if !ok {
+		s.logger.Info("view not found", zap.String("filename", uri.Filename()))
+		return
+	}
+
+	protoFile, ok := view.GetFile(uri)
 	if !ok {
 		s.logger.Info("file not found", zap.String("filename", uri.Filename()))
 		return
 	}
 
-	f, ok := p.GetMessageFieldByLine(int(params.Position.Line))
+	proto, ok := protoFile.ProtoSet().GetProtoByFilename(uri.Filename())
+	if !ok {
+		s.logger.Info("file not found", zap.String("filename", uri.Filename()))
+		return
+	}
+
+	field, ok := proto.GetMessageFieldByLine(int(params.Position.Line))
 	if !ok {
 		s.logger.Info("field not found")
 		return
 	}
 
-	t := f.ProtoField.Type
-	m, ok := p.GetMessageByName(t)
+	m, ok := proto.GetMessageByName(field.ProtoField.Type)
 	if !ok {
 		s.logger.Info("message not found")
 		return
