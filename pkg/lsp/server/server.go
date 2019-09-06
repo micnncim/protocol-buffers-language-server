@@ -12,10 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Copyright 2018 The Go Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
 package server
 
 import (
 	"context"
+	"fmt"
+	"net"
 	"sync"
 
 	"github.com/go-language-server/jsonrpc2"
@@ -56,7 +62,7 @@ func WithLogger(logger *zap.Logger) Option {
 	}
 }
 
-func NewServer(ctx context.Context, session source.Session, stream jsonrpc2.Stream, opts ...Option) *Server {
+func New(ctx context.Context, session source.Session, stream jsonrpc2.Stream, opts ...Option) *Server {
 	s := &Server{
 		state:   stateCreated,
 		stateMu: &sync.RWMutex{},
@@ -76,6 +82,28 @@ func NewServer(ctx context.Context, session source.Session, stream jsonrpc2.Stre
 	s.logger = s.logger.Named("server")
 
 	return s
+}
+
+// RunServerOnPort starts a server on the given port and does not exit.
+// This function exists for debugging purposes.
+func RunServerOnPort(ctx context.Context, session source.Session, port int, handler func(s *Server), opts ...Option) error {
+	return RunServerOnAddress(ctx, session, fmt.Sprintf(":%v", port), handler, opts...)
+}
+
+// RunServerOnPort starts a server on the given port and does not exit.
+// This function exists for debugging purposes.
+func RunServerOnAddress(ctx context.Context, session source.Session, addr string, handler func(s *Server), opts ...Option) error {
+	ln, err := net.Listen("tcp", addr)
+	if err != nil {
+		return err
+	}
+	for {
+		conn, err := ln.Accept()
+		if err != nil {
+			return err
+		}
+		handler(New(ctx, session, jsonrpc2.NewStream(conn, conn), opts...))
+	}
 }
 
 func (s *Server) Run(ctx context.Context) (err error) {

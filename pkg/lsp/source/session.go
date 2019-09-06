@@ -60,8 +60,8 @@ type Session interface {
 }
 
 var (
-	sessionIndex *atomic.Int64
-	viewIndex    *atomic.Int64
+	sessionIndex = &atomic.Int64{}
+	viewIndex    = &atomic.Int64{}
 )
 
 type session struct {
