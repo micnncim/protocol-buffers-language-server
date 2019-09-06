@@ -15,12 +15,12 @@
 package logging
 
 import (
+	"fmt"
 	"strings"
 	"time"
 
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
-	errors "golang.org/x/xerrors"
 )
 
 // NewLogger returns *zap.Logger initialized by provided log level and []zap.Option.
@@ -76,6 +76,6 @@ func parseLogLevel(levelStr string) (zapcore.Level, error) {
 	case zapcore.ErrorLevel.CapitalString():
 		return zapcore.ErrorLevel, nil
 	default:
-		return zapcore.InfoLevel, errors.Errorf("undefined log level: %s", levelStr)
+		return zapcore.InfoLevel, fmt.Errorf("undefined log level: %v", levelStr)
 	}
 }
