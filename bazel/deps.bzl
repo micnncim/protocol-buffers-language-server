@@ -124,8 +124,8 @@ def go_repositories():
     go_repository(
         name = "com_github_go_language_server_protocol",
         importpath = "github.com/go-language-server/protocol",
-        sum = "h1:95f98pTF6rnjHIOXuAUloPXvu9+vl/ocdHNhsDQt9ks=",
-        version = "v0.4.2",
+        sum = "h1:nDdo0E1txdMyYqY0GnXTki/xcy5jMbXJj+NWPrmb/PM=",
+        version = "v0.5.0",
     )
     go_repository(
         name = "com_github_go_language_server_uri",
