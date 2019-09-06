@@ -23,7 +23,6 @@ go_library(
     importpath = "github.com/micnncim/protocol-buffers-language-server/pkg/logging",
     visibility = ["//visibility:public"],
     deps = [
-        "@org_golang_x_xerrors//:go_default_library",
         "@org_uber_go_zap//:go_default_library",
         "@org_uber_go_zap//zapcore:go_default_library",
     ],
