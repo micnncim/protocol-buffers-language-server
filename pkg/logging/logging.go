@@ -67,7 +67,7 @@ func newConfig(cfg config.Log) (zap.Config, error) {
 	}
 	c.Level = zap.NewAtomicLevelAt(l)
 
-	if f := cfg.File; f == "" {
+	if f := cfg.File; f != "" {
 		c.OutputPaths = []string{f}
 		c.ErrorOutputPaths = []string{f}
 	}
