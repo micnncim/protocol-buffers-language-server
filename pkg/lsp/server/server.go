@@ -22,7 +22,7 @@ import (
 	"github.com/go-language-server/protocol"
 	"go.uber.org/zap"
 
-	"github.com/micnncim/protocol-buffers-language-server/pkg/proto/registry"
+	"github.com/micnncim/protocol-buffers-language-server/pkg/lsp/source"
 )
 
 type state int
@@ -41,7 +41,7 @@ type Server struct {
 	state   state
 	stateMu *sync.RWMutex
 
-	protoSet registry.ProtoSet
+	session source.Session
 
 	logger *zap.Logger
 }
@@ -56,10 +56,11 @@ func WithLogger(logger *zap.Logger) Option {
 	}
 }
 
-func NewServer(ctx context.Context, stream jsonrpc2.Stream, opts ...Option) *Server {
+func NewServer(ctx context.Context, session source.Session, stream jsonrpc2.Stream, opts ...Option) *Server {
 	s := &Server{
 		state:   stateCreated,
 		stateMu: &sync.RWMutex{},
+		session: session,
 		logger:  zap.NewNop(),
 	}
 	for _, opt := range opts {
