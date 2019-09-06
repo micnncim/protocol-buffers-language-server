@@ -42,10 +42,6 @@ bazel-clean:
 coverage:
 	go test -v -race -covermode=atomic -coverpkg=./... -coverprofile=coverage.txt ./...
 
-.PHONY: reviewdog
-reviewdog:
-	@reviewdog -reporter=github-pr-review
-
 .PHONY: expose-generated-go
 expose-generated-go:
 	./hack/expose-generated-go.sh micnncim protocol-buffers-language-server
