@@ -4,7 +4,7 @@ go 1.12
 
 require (
 	github.com/emicklei/proto v1.6.15
-	github.com/go-language-server/jsonrpc2 v0.2.5
+	github.com/go-language-server/jsonrpc2 v0.3.0
 	github.com/go-language-server/protocol v0.4.2
 	github.com/go-language-server/uri v0.2.0
 	github.com/golang/mock v1.3.1

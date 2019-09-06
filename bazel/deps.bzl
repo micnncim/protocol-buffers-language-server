@@ -118,8 +118,8 @@ def go_repositories():
     go_repository(
         name = "com_github_go_language_server_jsonrpc2",
         importpath = "github.com/go-language-server/jsonrpc2",
-        sum = "h1:wzfLvaeOS6v1SIkn8jdUq0ba7zaLlqE3Elc8OKeTyT8=",
-        version = "v0.2.5",
+        sum = "h1:lWefg5lZbYnrSQHqKEyHEGZ2himQXtDkfmA13ZR/XFM=",
+        version = "v0.3.0",
     )
     go_repository(
         name = "com_github_go_language_server_protocol",
@@ -514,8 +514,8 @@ def go_repositories():
     go_repository(
         name = "com_github_stretchr_testify",
         importpath = "github.com/stretchr/testify",
-        sum = "h1:TivCn/peBQ7UY8ooIcPgZFpTNSz0Q2U6UrFlUfqbe0Q=",
-        version = "v1.3.0",
+        sum = "h1:2E4SXV/wtOkTonXsotYi4li6zVWxYlZuYNCXe9XRJyk=",
+        version = "v1.4.0",
     )
     go_repository(
         name = "com_github_tarm_serial",
