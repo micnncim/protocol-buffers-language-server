@@ -175,8 +175,8 @@ go_repository(
 go_repository(
     name = "com_github_go_language_server_uri",
     importpath = "github.com/go-language-server/uri",
-    sum = "h1:2p3pYf79r7NSs6Hs7SoyDgWQwQvmQoq4GW3f6Rqooq0=",
-    version = "v0.1.2",
+    sum = "h1:zkFlKR0EYmCg3076hwVbM9/+/Ugr8vMQvQQgoS2JpTo=",
+    version = "v0.2.0",
 )
 
 go_repository(
@@ -217,8 +217,8 @@ go_repository(
 go_repository(
     name = "com_github_google_go_cmp",
     importpath = "github.com/google/go-cmp",
-    sum = "h1:Xye71clBPdm5HgqGwUkwhbynsUJZhDbS20FvLhQ2izg=",
-    version = "v0.3.1",
+    sum = "h1:B3yqxlLHBEoav+FDQM8ph7IIRA6AhQ70w119k3hoT2Y=",
+    version = "v0.3.2-0.20190829225427-b1c9c4891a65",
 )
 
 go_repository(
