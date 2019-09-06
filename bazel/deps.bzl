@@ -740,3 +740,27 @@ def go_repositories():
         sum = "h1:2/OCbaWT0ZStdlrAU9heVF2FAVUoP+Mky/bPxP2Mqhs=",
         version = "v1.10.1-0.20190430155229-8a2ee5670ced",
     )
+    go_repository(
+        name = "com_github_alecthomas_kingpin",
+        importpath = "github.com/alecthomas/kingpin",
+        sum = "h1:5svnBTFgJjZvGKyYBtMB0+m5wvrbUHiqye8wRJMlnYI=",
+        version = "v2.2.6+incompatible",
+    )
+    go_repository(
+        name = "com_github_alecthomas_template",
+        importpath = "github.com/alecthomas/template",
+        sum = "h1:JYp7IbQjafoB+tBA3gMyHYHrpOtNuDiK/uB5uXxq5wM=",
+        version = "v0.0.0-20190718012654-fb15b899a751",
+    )
+    go_repository(
+        name = "com_github_alecthomas_units",
+        importpath = "github.com/alecthomas/units",
+        sum = "h1:Hs82Z41s6SdL1CELW+XaDYmOH4hkBN4/N9og/AsOv7E=",
+        version = "v0.0.0-20190717042225-c3de453c63f4",
+    )
+    go_repository(
+        name = "com_github_kelseyhightower_envconfig",
+        importpath = "github.com/kelseyhightower/envconfig",
+        sum = "h1:Im6hONhd3pLkfDFsbRgu68RDNkGF1r3dvMUtDTo2cv8=",
+        version = "v1.4.0",
+    )
