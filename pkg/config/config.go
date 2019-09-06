@@ -46,7 +46,7 @@ type Log struct {
 func newEnv() (Env, error) {
 	env := Env{}
 	if err := envconfig.Process(envPrefix, env); err != nil {
-		return Env{}, nil
+		return Env{}, err
 	}
 	return env, nil
 }
