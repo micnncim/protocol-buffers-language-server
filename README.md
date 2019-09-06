@@ -13,6 +13,10 @@ Breaking changes will occur until a stable release is made and announced.
 
 [Language Server](https://langserver.org/) for [Protocol Buffers](https://developers.google.com/protocol-buffers/).
 
+## Development
+
+For more information about developing Protocol Buffers Language Server, see [Development](./docs/development.md).
+
 ## Reference
 
 - [Langserver.org](https://langserver.org/)
