@@ -19,8 +19,8 @@ test:
 .PHONY: dep
 dep:
 	GO111MODULE=on go mod tidy
-	bazel run //:gazelle -- update-repos -from_file=go.mod
 	bazel run //:gazelle
+	bazel run //:gazelle -- update-repos -from_file=go.mod -to_macro=bazel/deps.bzl%go_repositories
 
 .PHONY: bazel-build
 bazel-build:
