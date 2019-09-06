@@ -6,6 +6,11 @@
 [![GolangCI][golangci-badge]][golangci]
 [![Go Report Card][go-report-card-badge]][go-report-card]
 
+**WARNING**:
+This repository is in active development.
+There are no guarantees about stability.
+Breaking changes will occur until a stable release is made and announced.
+
 [Language Server](https://langserver.org/) for [Protocol Buffers](https://developers.google.com/protocol-buffers/).
 
 ## Reference
