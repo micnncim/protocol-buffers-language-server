@@ -16,23 +16,44 @@ package server
 
 import (
 	"context"
+	"errors"
 	"os"
+	"path/filepath"
 
 	"github.com/go-language-server/protocol"
-	errors "golang.org/x/xerrors"
+	"github.com/go-language-server/uri"
 )
 
-func (s *Server) initialize(ctx context.Context, params *protocol.InitializeParams) (result *protocol.InitializeResult, err error) { //nolint:unparam
+func (s *Server) initialize(ctx context.Context, params *protocol.InitializeParams) (result *protocol.InitializeResult, err error) {
 	s.stateMu.RLock()
 	state := s.state
 	s.stateMu.RUnlock()
 	if state > stateInitializing {
-		err = errors.Errorf("server already initialized")
+		err = errors.New("server already initialized")
 		return
 	}
 	s.stateMu.Lock()
 	s.state = stateInitializing
 	s.stateMu.Unlock()
+
+	folders := params.WorkspaceFolders
+	if len(folders) == 0 {
+		if rootURI := params.RootURI; rootURI != "" {
+			folders = []protocol.WorkspaceFolder{
+				{
+					URI:  rootURI.Filename(),
+					Name: filepath.Base(rootURI.Filename()),
+				},
+			}
+		} else {
+			err = errors.New("single file mode not supported yet")
+			return
+		}
+	}
+
+	for _, folder := range folders {
+		s.session.NewView(ctx, folder.Name, uri.File(folder.URI))
+	}
 
 	result = &protocol.InitializeResult{
 		Capabilities: protocol.ServerCapabilities{
@@ -61,19 +82,19 @@ func (s *Server) initialize(ctx context.Context, params *protocol.InitializePara
 	return
 }
 
-func (s *Server) initialized(ctx context.Context, params *protocol.InitializedParams) (err error) { //nolint:unparam
+func (s *Server) initialized(context.Context, *protocol.InitializedParams) (err error) {
 	s.stateMu.Lock()
 	s.state = stateInitialized
 	s.stateMu.Unlock()
 	return
 }
 
-func (s *Server) shutdown(ctx context.Context) (err error) { //nolint:unparam
+func (s *Server) shutdown(context.Context) (err error) {
 	s.stateMu.RLock()
 	state := s.state
 	s.stateMu.RUnlock()
 	if state < stateInitialized {
-		err = errors.Errorf("server not initialized")
+		err = errors.New("server not initialized")
 		return
 	}
 	s.stateMu.Lock()
@@ -82,7 +103,7 @@ func (s *Server) shutdown(ctx context.Context) (err error) { //nolint:unparam
 	return
 }
 
-func (s *Server) exit(ctx context.Context) (err error) { //nolint:unparam
+func (s *Server) exit(context.Context) (err error) {
 	s.stateMu.RLock()
 	defer s.stateMu.RUnlock()
 	if s.state != stateShutdown {
