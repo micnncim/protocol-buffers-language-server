@@ -16,23 +16,44 @@ package server
 
 import (
 	"context"
+	"errors"
 	"os"
+	"path/filepath"
 
 	"github.com/go-language-server/protocol"
-	errors "golang.org/x/xerrors"
+	"github.com/go-language-server/uri"
 )
 
-func (s *Server) initialize(_ context.Context, params *protocol.InitializeParams) (result *protocol.InitializeResult, err error) {
+func (s *Server) initialize(ctx context.Context, params *protocol.InitializeParams) (result *protocol.InitializeResult, err error) {
 	s.stateMu.RLock()
 	state := s.state
 	s.stateMu.RUnlock()
 	if state > stateInitializing {
-		err = errors.Errorf("server already initialized")
+		err = errors.New("server already initialized")
 		return
 	}
 	s.stateMu.Lock()
 	s.state = stateInitializing
 	s.stateMu.Unlock()
+
+	folders := params.WorkspaceFolders
+	if len(folders) == 0 {
+		if rootURI := params.RootURI; rootURI != "" {
+			folders = []protocol.WorkspaceFolder{
+				{
+					URI:  rootURI.Filename(),
+					Name: filepath.Base(rootURI.Filename()),
+				},
+			}
+		} else {
+			err = errors.New("single file mode not supported yet")
+			return
+		}
+	}
+
+	for _, folder := range folders {
+		s.session.NewView(ctx, folder.Name, uri.File(folder.URI))
+	}
 
 	result = &protocol.InitializeResult{
 		Capabilities: protocol.ServerCapabilities{
@@ -61,7 +82,7 @@ func (s *Server) initialize(_ context.Context, params *protocol.InitializeParams
 	return
 }
 
-func (s *Server) initialized(_ context.Context, params *protocol.InitializedParams) (err error) {
+func (s *Server) initialized(_ context.Context, _ *protocol.InitializedParams) (err error) {
 	s.stateMu.Lock()
 	s.state = stateInitialized
 	s.stateMu.Unlock()
@@ -73,7 +94,7 @@ func (s *Server) shutdown(_ context.Context) (err error) {
 	state := s.state
 	s.stateMu.RUnlock()
 	if state < stateInitialized {
-		err = errors.Errorf("server not initialized")
+		err = errors.New("server not initialized")
 		return
 	}
 	s.stateMu.Lock()
