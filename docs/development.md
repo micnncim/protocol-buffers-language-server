@@ -10,7 +10,7 @@ This document contains notes about development and testing of Protocol Buffers L
 ## Build and Test
 
 This project uses [Bazel](https://bazel.build) and also Bazelisk for build and test.
-Bazelisk installs Bazel versioned by `.bazelversion` if not installed yet, and uses the Bazel.
+Bazelisk installs Bazel versioned by `.bazelversion` if not installed yet, and uses Bazel of the version.
 So all you need is to install Bazelisk.
 
 ```
@@ -18,7 +18,8 @@ $ go get github.com/bazelbuild/bazelisk
 ```
 
 And Bazel controls the versions of Go, Protocol Buffers and something like that.
-Thus, you don't need to care about their versions and install them.
+Thus, you don't need to care about their versions and install them to build or test.
+To develop you need to use Go 1.13.
 
 To build this project, run the following command.
 This builds it with Bazel.
