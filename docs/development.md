@@ -1,10 +1,15 @@
-# Development
+# Development Guide
 
 This document contains notes about development and testing of Protocol Buffers Language Server.
 
-## Build / Test / Develop
+## Prerequisites
 
-This project uses [Bazel](https://bazel.build/) and also [Bazelisk](https://github.com/bazelbuild/bazelisk) for build and test.
+- [Go 1.13](https://golang.org/dl) (for development)
+- [Bazelisk](https://github.com/bazelbuild/bazelisk) (explained at [Build and Test](#build-and-test))
+
+## Build and Test
+
+This project uses [Bazel](https://bazel.build) and also Bazelisk for build and test.
 Bazelisk installs Bazel versioned by `.bazelversion` if not installed yet, and uses the Bazel.
 So all you need is to install Bazelisk.
 
