@@ -82,14 +82,14 @@ func (s *Server) initialize(ctx context.Context, params *protocol.InitializePara
 	return
 }
 
-func (s *Server) initialized(_ context.Context, _ *protocol.InitializedParams) (err error) {
+func (s *Server) initialized(context.Context, *protocol.InitializedParams) (err error) {
 	s.stateMu.Lock()
 	s.state = stateInitialized
 	s.stateMu.Unlock()
 	return
 }
 
-func (s *Server) shutdown(_ context.Context) (err error) {
+func (s *Server) shutdown(context.Context) (err error) {
 	s.stateMu.RLock()
 	state := s.state
 	s.stateMu.RUnlock()
@@ -103,7 +103,7 @@ func (s *Server) shutdown(_ context.Context) (err error) {
 	return
 }
 
-func (s *Server) exit(_ context.Context) (err error) {
+func (s *Server) exit(context.Context) (err error) {
 	s.stateMu.RLock()
 	defer s.stateMu.RUnlock()
 	if s.state != stateShutdown {
