@@ -22,7 +22,7 @@ import (
 	errors "golang.org/x/xerrors"
 )
 
-func (s *Server) initialize(ctx context.Context, params *protocol.InitializeParams) (result *protocol.InitializeResult, err error) { //nolint:unparam
+func (s *Server) initialize(_ context.Context, params *protocol.InitializeParams) (result *protocol.InitializeResult, err error) {
 	s.stateMu.RLock()
 	state := s.state
 	s.stateMu.RUnlock()
@@ -61,14 +61,14 @@ func (s *Server) initialize(ctx context.Context, params *protocol.InitializePara
 	return
 }
 
-func (s *Server) initialized(ctx context.Context, params *protocol.InitializedParams) (err error) { //nolint:unparam
+func (s *Server) initialized(_ context.Context, params *protocol.InitializedParams) (err error) {
 	s.stateMu.Lock()
 	s.state = stateInitialized
 	s.stateMu.Unlock()
 	return
 }
 
-func (s *Server) shutdown(ctx context.Context) (err error) { //nolint:unparam
+func (s *Server) shutdown(_ context.Context) (err error) {
 	s.stateMu.RLock()
 	state := s.state
 	s.stateMu.RUnlock()
@@ -82,7 +82,7 @@ func (s *Server) shutdown(ctx context.Context) (err error) { //nolint:unparam
 	return
 }
 
-func (s *Server) exit(ctx context.Context) (err error) { //nolint:unparam
+func (s *Server) exit(_ context.Context) (err error) {
 	s.stateMu.RLock()
 	defer s.stateMu.RUnlock()
 	if s.state != stateShutdown {
