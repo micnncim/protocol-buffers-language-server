@@ -22,7 +22,7 @@ import (
 	errors "golang.org/x/xerrors"
 )
 
-func (s *Server) initialize(ctx context.Context, params *protocol.InitializeParams) (result *protocol.InitializeResult, err error) {
+func (s *Server) initialize(ctx context.Context, params *protocol.InitializeParams) (result *protocol.InitializeResult, err error) { //nolint:unparam
 	s.stateMu.RLock()
 	state := s.state
 	s.stateMu.RUnlock()
@@ -61,7 +61,7 @@ func (s *Server) initialize(ctx context.Context, params *protocol.InitializePara
 	return
 }
 
-func (s *Server) initialized(ctx context.Context, params *protocol.InitializedParams) (err error) {
+func (s *Server) initialized(ctx context.Context, params *protocol.InitializedParams) (err error) { //nolint:unparam
 	s.stateMu.Lock()
 	s.state = stateInitialized
 	s.stateMu.Unlock()

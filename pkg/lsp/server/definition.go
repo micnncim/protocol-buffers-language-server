@@ -24,7 +24,7 @@ import (
 
 // TODO: Match position with line and column.
 // Currently matches with only line.
-func (s *Server) definition(ctx context.Context, params *protocol.TextDocumentPositionParams) (result []protocol.Location, err error) {
+func (s *Server) definition(ctx context.Context, params *protocol.TextDocumentPositionParams) (result []protocol.Location, err error) { //nolint:unparam
 	s.logger = s.logger.With(zap.Any("params", params))
 
 	uri := params.TextDocument.URI

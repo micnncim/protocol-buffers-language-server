@@ -66,8 +66,6 @@ linters-settings:
     algo: cha
     check-exported: false
   gocritic:
-    enabled-checks:
-      - rangeValCopy
     disabled-checks:
       - regexpMust
     enabled-tags:

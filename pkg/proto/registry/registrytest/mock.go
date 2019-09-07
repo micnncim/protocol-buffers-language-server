@@ -15,7 +15,7 @@
 package registrytest
 
 import (
-	_ "github.com/golang/mock/gomock"
+	_ "github.com/golang/mock/gomock" //nolint:golint
 
-	_ "github.com/micnncim/protocol-buffers-language-server/pkg/proto/registry"
+	_ "github.com/micnncim/protocol-buffers-language-server/pkg/proto/registry" //nolint:golint
 )

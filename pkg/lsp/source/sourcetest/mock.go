@@ -15,7 +15,7 @@
 package sourcetest
 
 import (
-	_ "github.com/golang/mock/gomock"
+	_ "github.com/golang/mock/gomock" //nolint:golint
 
-	_ "github.com/micnncim/protocol-buffers-language-server/pkg/lsp/source"
+	_ "github.com/micnncim/protocol-buffers-language-server/pkg/lsp/source" //nolint:golint
 )
