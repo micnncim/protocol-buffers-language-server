@@ -15,7 +15,11 @@ Breaking changes will occur until a stable release is made and announced.
 
 ## Development
 
-For more information about developing Protocol Buffers Language Server, see [Development Guide](./docs/development.md).
+See [Development Guide](./docs/development.md).
+
+## Contribution
+
+See [Contribution Guide](./CONTRIBUTING.md).
 
 ## Reference
 
