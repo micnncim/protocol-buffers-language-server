@@ -68,7 +68,7 @@ func (s *Server) initialized(ctx context.Context, params *protocol.InitializedPa
 	return
 }
 
-func (s *Server) shutdown(ctx context.Context) (err error) {
+func (s *Server) shutdown(ctx context.Context) (err error) { //nolint:unparam
 	s.stateMu.RLock()
 	state := s.state
 	s.stateMu.RUnlock()
@@ -82,7 +82,7 @@ func (s *Server) shutdown(ctx context.Context) (err error) {
 	return
 }
 
-func (s *Server) exit(ctx context.Context) (err error) {
+func (s *Server) exit(ctx context.Context) (err error) { //nolint:unparam
 	s.stateMu.RLock()
 	defer s.stateMu.RUnlock()
 	if s.state != stateShutdown {
