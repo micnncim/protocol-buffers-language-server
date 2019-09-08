@@ -180,8 +180,10 @@ func (s *Server) DidChangeWatchedFiles(ctx context.Context, params *protocol.Did
 	panic("not implement yet")
 }
 
+// DidChangeWorkspaceFolders implements workspace/didChangeWorkspaceFolders method.
+// https://microsoft.github.io/language-server-protocol/specification#workspace_didChangeWorkspaceFolders
 func (s *Server) DidChangeWorkspaceFolders(ctx context.Context, params *protocol.DidChangeWorkspaceFoldersParams) (err error) {
-	panic("not implement yet")
+	return s.changeWorkspace(ctx, params.Event)
 }
 
 func (s *Server) DidClose(ctx context.Context, params *protocol.DidCloseTextDocumentParams) (err error) {
