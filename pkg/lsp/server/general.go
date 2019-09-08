@@ -43,16 +43,16 @@ func (s *Server) initialize(ctx context.Context, params *protocol.InitializePara
 
 	folders := params.WorkspaceFolders
 	if len(folders) == 0 {
-		if rootURI := params.RootURI; rootURI != "" {
-			folders = []protocol.WorkspaceFolder{
-				{
-					URI:  rootURI.Filename(),
-					Name: filepath.Base(rootURI.Filename()),
-				},
-			}
-		} else {
+		rootURI := params.RootURI
+		if rootURI == "" {
 			err = errors.New("single file mode not supported yet")
 			return
+		}
+		folders = []protocol.WorkspaceFolder{
+			{
+				URI:  rootURI.Filename(),
+				Name: filepath.Base(rootURI.Filename()),
+			},
 		}
 	}
 
