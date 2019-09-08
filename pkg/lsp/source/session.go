@@ -158,9 +158,8 @@ func (s *session) Shutdown(ctx context.Context) {
 
 func (s *session) DidOpen(ctx context.Context, uri uri.URI) {
 	s.openFilesMu.Lock()
-	defer s.openFilesMu.Unlock()
-
 	s.openFiles[uri] = true
+	s.openFilesMu.Unlock()
 }
 
 // TODO: Implement.
