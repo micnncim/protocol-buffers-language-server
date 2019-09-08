@@ -109,7 +109,7 @@ func (v *view) GetFile(uri uri.URI) (ProtoFile, bool) {
 	return f, ok
 }
 
-// SetContent sets the overlay contents for a file.
+// SetContent sets the Overlay contents for a file.
 func (v *view) SetContent(ctx context.Context, uri uri.URI, content []byte) (bool, error) {
 	v.mu.Lock()
 	defer v.mu.Unlock()

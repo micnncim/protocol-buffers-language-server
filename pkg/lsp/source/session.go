@@ -67,7 +67,7 @@ type Session interface {
 
 	SetOverlay(uri uri.URI, data []byte) (isFirstChange bool)
 
-	GetOverlay(uri uri.URI) (*overlay, bool)
+	GetOverlay(uri uri.URI) (*Overlay, bool)
 }
 
 type session struct {
@@ -78,14 +78,14 @@ type session struct {
 	viewMu  *sync.RWMutex
 
 	overlayMu *sync.RWMutex
-	overlays  map[uri.URI]*overlay
+	overlays  map[uri.URI]*Overlay
 
 	openFiles   map[uri.URI]bool
 	openFilesMu *sync.RWMutex
 }
 
-// overlay is an overlay for changed files.
-type overlay struct {
+// Overlay is an Overlay for changed files.
+type Overlay struct {
 	session   Session
 	uri       uri.URI
 	data      []byte
@@ -196,7 +196,7 @@ func (s *session) SetOverlay(uri uri.URI, data []byte) (isFirstChange bool) {
 
 	o := s.overlays[uri]
 
-	s.overlays[uri] = &overlay{
+	s.overlays[uri] = &Overlay{
 		session:   s,
 		uri:       uri,
 		data:      data,
@@ -208,7 +208,7 @@ func (s *session) SetOverlay(uri uri.URI, data []byte) (isFirstChange bool) {
 	return
 }
 
-func (s *session) GetOverlay(uri uri.URI) (overlay *overlay, ok bool) {
+func (s *session) GetOverlay(uri uri.URI) (overlay *Overlay, ok bool) {
 	s.overlayMu.RLock()
 	overlay, ok = s.overlays[uri]
 	s.overlayMu.RUnlock()
