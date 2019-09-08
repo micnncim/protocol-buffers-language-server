@@ -114,7 +114,6 @@ func (s *session) AddView(ctx context.Context, view View) {
 	s.viewMap = make(map[uri.URI]View)
 
 	s.viewMu.Unlock()
-	return
 }
 
 func (s *session) View(name string) (View, bool) {
@@ -130,11 +129,10 @@ func (s *session) View(name string) (View, bool) {
 	return nil, false
 }
 
-func (s *session) ViewOf(uri uri.URI) (View, bool) {
+func (s *session) ViewOf(uri uri.URI) (v View, ok bool) {
 	s.viewMu.RLock()
-	defer s.viewMu.RUnlock()
-
-	v, ok := s.viewMap[uri]
+	v, ok = s.viewMap[uri]
+	s.viewMu.RUnlock()
 	return v, ok
 }
 
@@ -172,9 +170,8 @@ func (s *session) DidSave(uri uri.URI) {
 
 func (s *session) DidClose(uri uri.URI) {
 	s.openFilesMu.Lock()
-	defer s.openFilesMu.Unlock()
-
 	delete(s.openFiles, uri)
+	s.openFilesMu.Unlock()
 }
 
 func (s *session) IsOpen(uri uri.URI) bool {
