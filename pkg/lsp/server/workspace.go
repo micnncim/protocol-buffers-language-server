@@ -23,6 +23,8 @@ import (
 
 	"github.com/go-language-server/protocol"
 	"github.com/go-language-server/uri"
+
+	"github.com/micnncim/protocol-buffers-language-server/pkg/lsp/source"
 )
 
 func (s *Server) changeWorkspace(ctx context.Context, event protocol.WorkspaceFoldersChangeEvent) error {
@@ -41,5 +43,6 @@ func (s *Server) changeWorkspace(ctx context.Context, event protocol.WorkspaceFo
 }
 
 func (s *Server) addView(ctx context.Context, name string, uri uri.URI) {
-	s.session.NewView(ctx, name, uri)
+	view := source.NewView(s.session, name, uri)
+	s.session.AddView(ctx, view)
 }

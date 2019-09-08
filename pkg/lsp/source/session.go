@@ -20,10 +20,17 @@ package source
 
 import (
 	"context"
+	"crypto/sha1"
+	"fmt"
 	"sync"
 
 	"github.com/go-language-server/uri"
 	"go.uber.org/atomic"
+)
+
+var (
+	sessionIndex = &atomic.Int64{}
+	viewIndex    = &atomic.Int64{}
 )
 
 // Session represents a single connection from a client.
@@ -31,8 +38,8 @@ import (
 // of the client.
 // A session may have many active views at any given time.
 type Session interface {
-	// NewView creates a new View, adds it to the Session and returns it.
-	NewView(ctx context.Context, name string, folder uri.URI) View
+	// AddView creates a new View, adds it to the Session and returns it.
+	AddView(ctx context.Context, view View)
 
 	// View returns a view with a matching name, if the session has one.
 	View(name string) (View, bool)
@@ -57,29 +64,40 @@ type Session interface {
 
 	// IsOpen can be called to check if the editor has a file currently open.
 	IsOpen(uri uri.URI) bool
-}
 
-var (
-	sessionIndex = &atomic.Int64{}
-	viewIndex    = &atomic.Int64{}
-)
+	SetOverlay(uri uri.URI, data []byte) (isFirstChange bool)
+
+	GetOverlay(uri uri.URI) (*overlay, bool)
+}
 
 type session struct {
 	id int64
 
-	views   []*view
-	viewMap map[uri.URI]*view
+	views   []View
+	viewMap map[uri.URI]View
 	viewMu  *sync.RWMutex
+
+	overlayMu *sync.RWMutex
+	overlays  map[uri.URI]*overlay
 
 	openFiles   map[uri.URI]bool
 	openFilesMu *sync.RWMutex
+}
+
+// overlay is an overlay for changed files.
+type overlay struct {
+	session   Session
+	uri       uri.URI
+	data      []byte
+	hash      string
+	unchanged bool
 }
 
 // NewSession returns Session.
 func NewSession() Session {
 	return &session{
 		id:          sessionIndex.Add(1),
-		viewMap:     make(map[uri.URI]*view),
+		viewMap:     make(map[uri.URI]View),
 		viewMu:      &sync.RWMutex{},
 		openFiles:   make(map[uri.URI]bool),
 		openFilesMu: &sync.RWMutex{},
@@ -88,25 +106,15 @@ func NewSession() Session {
 
 var _ Session = (*session)(nil)
 
-func (s *session) NewView(ctx context.Context, name string, folder uri.URI) View {
+func (s *session) AddView(ctx context.Context, view View) {
 	s.viewMu.Lock()
-	defer s.viewMu.Unlock()
 
-	v := &view{
-		id:                  viewIndex.Add(1),
-		session:             s,
-		name:                name,
-		folder:              folder,
-		uriToProtoFile:      make(map[uri.URI]ProtoFile),
-		basenameToProtoFile: make(map[string][]ProtoFile),
-		mu:                  &sync.RWMutex{},
-	}
-
-	s.views = append(s.views, v)
+	s.views = append(s.views, view)
 	// we always need to drop the view map
-	s.viewMap = make(map[uri.URI]*view)
+	s.viewMap = make(map[uri.URI]View)
 
-	return v
+	s.viewMu.Unlock()
+	return
 }
 
 func (s *session) View(name string) (View, bool) {
@@ -178,4 +186,38 @@ func (s *session) IsOpen(uri uri.URI) bool {
 		return false
 	}
 	return open
+}
+
+func (s *session) SetOverlay(uri uri.URI, data []byte) (isFirstChange bool) {
+	s.overlayMu.Lock()
+	defer s.overlayMu.Unlock()
+
+	if data == nil {
+		delete(s.overlays, uri)
+		return
+	}
+
+	o := s.overlays[uri]
+
+	s.overlays[uri] = &overlay{
+		session:   s,
+		uri:       uri,
+		data:      data,
+		hash:      hashContent(data),
+		unchanged: o == nil,
+	}
+
+	isFirstChange = o != nil && o.unchanged
+	return
+}
+
+func (s *session) GetOverlay(uri uri.URI) (overlay *overlay, ok bool) {
+	s.overlayMu.RLock()
+	overlay, ok = s.overlays[uri]
+	s.overlayMu.RUnlock()
+	return
+}
+
+func hashContent(content []byte) string {
+	return fmt.Sprintf("%x", sha1.Sum(content))
 }

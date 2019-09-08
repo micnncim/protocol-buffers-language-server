@@ -19,14 +19,36 @@
 package source
 
 import (
+	"context"
+
 	"github.com/go-language-server/uri"
 
 	"github.com/micnncim/protocol-buffers-language-server/pkg/proto/registry"
 )
 
-// ProtoFile represents a source file of any type.
-type ProtoFile interface {
+// File represents a source file of any type.
+type File interface {
 	URI() uri.URI
 	View() View
+	Version() string
+}
+
+// ProtoFile represents a source file of protobuf.
+type ProtoFile interface {
+	File
 	ProtoSet() registry.ProtoSet
+}
+
+type FileReader interface {
+	Read(ctx context.Context) (data []byte, hash string, err error)
+}
+
+type FileHandler interface {
+	File
+	FileReader
+}
+
+type ProtoFileHandler interface {
+	ProtoFile
+	FileReader
 }
