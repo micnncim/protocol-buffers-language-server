@@ -41,7 +41,7 @@ func (s *Server) didClose(ctx context.Context, params *protocol.DidCloseTextDocu
 	return
 }
 
-func (s *Server) didSave(ctx context.Context, params *protocol.DidSaveTextDocumentParams) (err error) {
+func (s *Server) didSave(_ context.Context, params *protocol.DidSaveTextDocumentParams) (err error) {
 	s.session.DidSave(params.TextDocument.URI)
 	return
 }
