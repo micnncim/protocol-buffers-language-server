@@ -12,6 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Copyright 2019 The Go Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
 package server
 
 import (
@@ -20,6 +24,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/go-language-server/jsonrpc2"
 	"github.com/go-language-server/protocol"
 	"github.com/go-language-server/uri"
 )
@@ -29,7 +34,7 @@ func (s *Server) initialize(ctx context.Context, params *protocol.InitializePara
 	state := s.state
 	s.stateMu.RUnlock()
 	if state > stateInitializing {
-		err = errors.New("server already initialized")
+		err = jsonrpc2.NewError(jsonrpc2.InvalidRequest, "server already initialized")
 		return
 	}
 	s.stateMu.Lock()
@@ -65,7 +70,7 @@ func (s *Server) initialize(ctx context.Context, params *protocol.InitializePara
 			SignatureHelpProvider: &protocol.SignatureHelpOptions{
 				TriggerCharacters: nil,
 			},
-			DefinitionProvider:              false,
+			DefinitionProvider:              true,
 			WorkspaceSymbolProvider:         false,
 			DocumentFormattingProvider:      false,
 			DocumentRangeFormattingProvider: false,
@@ -79,6 +84,7 @@ func (s *Server) initialize(ctx context.Context, params *protocol.InitializePara
 			},
 		},
 	}
+
 	return
 }
 
@@ -89,14 +95,15 @@ func (s *Server) initialized(context.Context, *protocol.InitializedParams) (err 
 	return
 }
 
-func (s *Server) shutdown(context.Context) (err error) {
+func (s *Server) shutdown(ctx context.Context) (err error) {
 	s.stateMu.RLock()
 	state := s.state
 	s.stateMu.RUnlock()
 	if state < stateInitialized {
-		err = errors.New("server not initialized")
+		err = jsonrpc2.NewError(jsonrpc2.InvalidRequest, "server not initialized")
 		return
 	}
+	s.session.Shutdown(ctx)
 	s.stateMu.Lock()
 	s.state = stateShutdown
 	s.stateMu.Unlock()
