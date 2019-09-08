@@ -314,6 +314,6 @@ func (s *Server) WillSaveWaitUntil(ctx context.Context, params *protocol.WillSav
 	return
 }
 
-func notImplemented(method string) *jsonrpc2.Error {
+func notImplemented(method string) error {
 	return jsonrpc2.NewError(jsonrpc2.MethodNotFound, "method %q not implemented", method)
 }
