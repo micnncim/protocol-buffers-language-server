@@ -43,12 +43,12 @@ type FileReader interface {
 	Read(ctx context.Context) (data []byte, hash string, err error)
 }
 
-type FileHandler interface {
+type FileHandle interface {
 	File
 	FileReader
 }
 
-type ProtoFileHandler interface {
+type ProtoFileHandle interface {
 	ProtoFile
 	FileReader
 }
