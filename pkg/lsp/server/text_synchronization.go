@@ -21,18 +21,19 @@ package server
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/go-language-server/jsonrpc2"
 	"github.com/go-language-server/protocol"
 )
 
-func (s *Server) didOpen(ctx context.Context, params *protocol.DidOpenTextDocumentParams) (err error) {
+func (s *Server) didOpen(ctx context.Context, params *protocol.DidOpenTextDocumentParams) error {
 	uri := params.TextDocument.URI
 	s.session.DidOpen(ctx, uri)
-	return
+	return nil
 }
 
-func (s *Server) didChange(ctx context.Context, params *protocol.DidChangeTextDocumentParams) (err error) {
+func (s *Server) didChange(ctx context.Context, params *protocol.DidChangeTextDocumentParams) error {
 	if len(params.ContentChanges) < 1 {
 		return jsonrpc2.NewError(jsonrpc2.InternalError, "no content changes provided")
 	}
@@ -52,34 +53,33 @@ func (s *Server) didChange(ctx context.Context, params *protocol.DidChangeTextDo
 
 	view, ok := s.session.ViewOf(uri)
 	if !ok {
-		err = errors.New("view not found")
-		return
+		return errors.New("view not found")
 	}
-	if _, err = view.SetContent(ctx, uri, []byte(text)); err != nil {
-		return
+	if _, err := view.SetContent(ctx, uri, []byte(text)); err != nil {
+		return err
 	}
 
-	return
+	return nil
 }
 
-func (s *Server) didClose(ctx context.Context, params *protocol.DidCloseTextDocumentParams) (err error) {
+func (s *Server) didClose(ctx context.Context, params *protocol.DidCloseTextDocumentParams) error {
 	uri := params.TextDocument.URI
 
 	s.session.DidClose(uri)
 	view, ok := s.session.ViewOf(uri)
 	if !ok {
-		return
+		return fmt.Errorf("view of %s not found", uri.Filename())
 	}
-	if _, err = view.SetContent(ctx, uri, nil); err != nil {
-		return
+	if _, err := view.SetContent(ctx, uri, nil); err != nil {
+		return err
 	}
 
-	return
+	return nil
 }
 
-func (s *Server) didSave(_ context.Context, params *protocol.DidSaveTextDocumentParams) (err error) {
+func (s *Server) didSave(_ context.Context, params *protocol.DidSaveTextDocumentParams) error {
 	s.session.DidSave(params.TextDocument.URI)
-	return
+	return nil
 }
 
 func getChangedText(changes []protocol.TextDocumentContentChangeEvent) (text string, isFullChanged bool) {
