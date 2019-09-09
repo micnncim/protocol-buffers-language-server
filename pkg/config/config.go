@@ -15,6 +15,7 @@
 package config
 
 import (
+	"github.com/go-language-server/protocol"
 	"github.com/kelseyhightower/envconfig"
 )
 
@@ -33,8 +34,14 @@ type Env struct {
 
 // Server represents a configuration for server.
 type Server struct {
+	LSP     LSP
 	Address string
 	Port    int
+}
+
+// LSP represents a configuration for LSP.
+type LSP struct {
+	TextDocumentSyncKind protocol.TextDocumentSyncKind
 }
 
 // Log represents a configuration for zap.Logger.

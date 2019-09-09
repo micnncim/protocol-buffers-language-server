@@ -27,6 +27,8 @@ import (
 	"github.com/go-language-server/jsonrpc2"
 	"github.com/go-language-server/protocol"
 	"github.com/go-language-server/uri"
+
+	"github.com/micnncim/protocol-buffers-language-server/pkg/lsp/source"
 )
 
 func (s *Server) initialize(ctx context.Context, params *protocol.InitializeParams) (result *protocol.InitializeResult, err error) {
@@ -57,7 +59,8 @@ func (s *Server) initialize(ctx context.Context, params *protocol.InitializePara
 	}
 
 	for _, folder := range folders {
-		s.session.NewView(ctx, folder.Name, uri.File(folder.URI))
+		view := source.NewView(s.session, folder.Name, uri.File(folder.URI))
+		s.session.AddView(ctx, view)
 	}
 
 	result = &protocol.InitializeResult{

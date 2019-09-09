@@ -41,13 +41,19 @@ type View interface {
 	// GetFile returns the file object for a given uri.
 	GetFile(uri uri.URI) (ProtoFile, bool)
 
+	// Called to set the effective contents of a file from this view.
+	SetContent(ctx context.Context, uri uri.URI, content []byte) (wasFirstChange bool, err error)
+
+	// Ignore returns true if this file should be ignored by this view.
+	Ignore(uri.URI) bool
+
 	// Shutdown closes this view, and detaches it from it's session.
-	Shutdown(ctx context.Context)
+	Shutdown(ctx context.Context) error
 }
 
 type view struct {
 	id      int64
-	session *session
+	session Session
 
 	// name is the user visible name of this view.
 	name string
@@ -60,10 +66,28 @@ type view struct {
 	uriToProtoFile      map[uri.URI]ProtoFile
 	basenameToProtoFile map[string][]ProtoFile
 
+	// ignoredURIs is the set of URIs of files that we ignore.
+	ignoredURIsMu *sync.RWMutex
+	ignoredURIs   map[uri.URI]struct{}
+
 	mu *sync.RWMutex
 }
 
 var _ View = (*view)(nil)
+
+func NewView(session Session, name string, folder uri.URI) View {
+	return &view{
+		id:                  viewIndex.Add(1),
+		session:             session,
+		name:                name,
+		folder:              folder,
+		uriToProtoFile:      make(map[uri.URI]ProtoFile),
+		basenameToProtoFile: make(map[string][]ProtoFile),
+		ignoredURIsMu:       nil,
+		ignoredURIs:         nil,
+		mu:                  &sync.RWMutex{},
+	}
+}
 
 func (v *view) Session() Session {
 	return v.session
@@ -85,7 +109,24 @@ func (v *view) GetFile(uri uri.URI) (ProtoFile, bool) {
 	return f, ok
 }
 
-// TODO: Implement.
-func (v *view) Shutdown(ctx context.Context) {
-	panic("implement me")
+// SetContent sets the Overlay contents for a file.
+func (v *view) SetContent(ctx context.Context, uri uri.URI, content []byte) (bool, error) {
+	v.mu.Lock()
+	defer v.mu.Unlock()
+
+	if !v.Ignore(uri) {
+		return v.session.SetOverlay(uri, content), nil
+	}
+	return false, nil
+}
+
+func (v *view) Ignore(uri uri.URI) (ok bool) {
+	v.ignoredURIsMu.Lock()
+	_, ok = v.ignoredURIs[uri]
+	v.ignoredURIsMu.Unlock()
+	return
+}
+
+func (v *view) Shutdown(ctx context.Context) error {
+	return v.session.RemoveView(ctx, v)
 }
