@@ -20,6 +20,7 @@ package server
 
 import (
 	"context"
+	"errors"
 
 	"github.com/go-language-server/jsonrpc2"
 	"github.com/go-language-server/protocol"
@@ -34,6 +35,28 @@ func (s *Server) didOpen(ctx context.Context, params *protocol.DidOpenTextDocume
 func (s *Server) didChange(ctx context.Context, params *protocol.DidChangeTextDocumentParams) (err error) {
 	if len(params.ContentChanges) < 1 {
 		return jsonrpc2.NewError(jsonrpc2.InternalError, "no content changes provided")
+	}
+
+	uri := params.TextDocument.URI
+
+	text, isFullChanged := getChangedText(params.ContentChanges)
+
+	// TODO: Implement logic when isFullChanged
+	if isFullChanged {
+		switch s.config.TextDocumentSyncKind {
+		case protocol.None:
+		case protocol.Full:
+		case protocol.Incremental:
+		}
+	}
+
+	view, ok := s.session.ViewOf(uri)
+	if !ok {
+		err = errors.New("view not found")
+		return
+	}
+	if _, err = view.SetContent(ctx, uri, []byte(text)); err != nil {
+		return
 	}
 
 	return
@@ -56,5 +79,17 @@ func (s *Server) didClose(ctx context.Context, params *protocol.DidCloseTextDocu
 
 func (s *Server) didSave(_ context.Context, params *protocol.DidSaveTextDocumentParams) (err error) {
 	s.session.DidSave(params.TextDocument.URI)
+	return
+}
+
+func getChangedText(changes []protocol.TextDocumentContentChangeEvent) (text string, isFullChanged bool) {
+	if len(changes) > 1 {
+		return
+	}
+	// The length of the changes must be 1 at this point.
+	if changes[0].Range == nil && changes[0].RangeLength == 0 {
+		text, isFullChanged = changes[0].Text, true
+		return
+	}
 	return
 }

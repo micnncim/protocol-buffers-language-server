@@ -28,6 +28,7 @@ import (
 	"github.com/go-language-server/protocol"
 	"go.uber.org/zap"
 
+	"github.com/micnncim/protocol-buffers-language-server/pkg/config"
 	"github.com/micnncim/protocol-buffers-language-server/pkg/lsp/source"
 )
 
@@ -48,6 +49,8 @@ type Server struct {
 	stateMu *sync.RWMutex
 
 	session source.Session
+
+	config config.LSP
 
 	logger *zap.Logger
 }
@@ -175,9 +178,10 @@ func (s *Server) Definition(ctx context.Context, params *protocol.TextDocumentPo
 	return s.definition(ctx, params)
 }
 
+// DidChange implements textDocument/didChange method.
+// https://microsoft.github.io/language-server-protocol/specification#textDocument_didChange
 func (s *Server) DidChange(ctx context.Context, params *protocol.DidChangeTextDocumentParams) (err error) {
-	err = notImplemented("DidChange")
-	return
+	return s.didChange(ctx, params)
 }
 
 func (s *Server) DidChangeConfiguration(ctx context.Context, params *protocol.DidChangeConfigurationParams) (err error) {
