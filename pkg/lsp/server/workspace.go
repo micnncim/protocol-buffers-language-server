@@ -33,7 +33,9 @@ func (s *Server) changeWorkspace(ctx context.Context, event protocol.WorkspaceFo
 		if !ok {
 			continue
 		}
-		view.Shutdown(ctx)
+		if err := view.Shutdown(ctx); err != nil {
+			return err
+		}
 	}
 
 	for _, folder := range event.Added {

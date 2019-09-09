@@ -41,6 +41,9 @@ type Session interface {
 	// AddView creates a new View, adds it to the Session and returns it.
 	AddView(ctx context.Context, view View)
 
+	// RemoveView removes a View with a matching name.
+	RemoveView(ctx context.Context, view View) error
+
 	// View returns a view with a matching name, if the session has one.
 	View(name string) (View, bool)
 
@@ -119,6 +122,22 @@ func (s *session) AddView(ctx context.Context, view View) {
 	s.viewMap = make(map[uri.URI]View)
 
 	s.viewMu.Unlock()
+}
+
+func (s *session) RemoveView(ctx context.Context, view View) error {
+	s.viewMu.Lock()
+	defer s.viewMu.Unlock()
+	// we always need to drop the view map
+	s.viewMap = make(map[uri.URI]View)
+	for i, v := range s.views {
+		if v == view {
+			s.views[i] = s.views[len(s.views)-1]
+			s.views[len(s.views)-1] = nil
+			s.views = s.views[:len(s.views)-1]
+			return nil
+		}
+	}
+	return fmt.Errorf("view %s for %v not found", view.Name(), view.Folder())
 }
 
 func (s *session) View(name string) (View, bool) {

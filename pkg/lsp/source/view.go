@@ -48,7 +48,7 @@ type View interface {
 	Ignore(uri.URI) bool
 
 	// Shutdown closes this view, and detaches it from it's session.
-	Shutdown(ctx context.Context)
+	Shutdown(ctx context.Context) error
 }
 
 type view struct {
@@ -127,7 +127,6 @@ func (v *view) Ignore(uri uri.URI) (ok bool) {
 	return
 }
 
-// TODO: Implement.
-func (v *view) Shutdown(ctx context.Context) {
-	panic("implement me")
+func (v *view) Shutdown(ctx context.Context) error {
+	return v.session.RemoveView(ctx, v)
 }
