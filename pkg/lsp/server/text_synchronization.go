@@ -12,17 +12,30 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Copyright 2019 The Go Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
 package server
 
 import (
 	"context"
 
+	"github.com/go-language-server/jsonrpc2"
 	"github.com/go-language-server/protocol"
 )
 
 func (s *Server) didOpen(ctx context.Context, params *protocol.DidOpenTextDocumentParams) (err error) {
 	uri := params.TextDocument.URI
 	s.session.DidOpen(ctx, uri)
+	return
+}
+
+func (s *Server) didChange(ctx context.Context, params *protocol.DidChangeTextDocumentParams) (err error) {
+	if len(params.ContentChanges) < 1 {
+		return jsonrpc2.NewError(jsonrpc2.InternalError, "no content changes provided")
+	}
+
 	return
 }
 

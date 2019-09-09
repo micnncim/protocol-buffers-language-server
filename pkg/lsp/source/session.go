@@ -86,10 +86,15 @@ type session struct {
 
 // Overlay is an Overlay for changed files.
 type Overlay struct {
-	session   Session
-	uri       uri.URI
-	data      []byte
-	hash      string
+	session Session
+	uri     uri.URI
+	data    []byte
+	hash    string
+
+	// saved is true if a file has been saved on disk.
+	saved bool
+
+	// unchanged is true if a file has not yet been edited.
 	unchanged bool
 }
 
@@ -162,9 +167,12 @@ func (s *session) DidOpen(ctx context.Context, uri uri.URI) {
 	s.openFilesMu.Unlock()
 }
 
-// TODO: Implement.
 func (s *session) DidSave(uri uri.URI) {
-	panic("implement me")
+	s.overlayMu.Lock()
+	if overlay, ok := s.overlays[uri]; ok {
+		overlay.saved = true
+	}
+	s.overlayMu.Unlock()
 }
 
 func (s *session) DidClose(uri uri.URI) {
