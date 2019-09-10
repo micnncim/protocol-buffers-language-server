@@ -79,8 +79,7 @@ type protoFile struct {
 }
 
 type fileBase struct {
-	uri      uri.URI
-	filename string
+	uri uri.URI
 
 	view View
 
@@ -92,7 +91,7 @@ func (f *fileBase) URI() uri.URI {
 	return f.uri
 }
 
-func (f fileBase) View() View {
+func (f *fileBase) View() View {
 	return f.view
 }
 
