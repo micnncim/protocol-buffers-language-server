@@ -87,6 +87,8 @@ type session struct {
 	openFilesMu *sync.RWMutex
 }
 
+var _ Session = (*session)(nil)
+
 // Overlay is an Overlay for changed files.
 type Overlay struct {
 	session Session
@@ -101,6 +103,8 @@ type Overlay struct {
 	unchanged bool
 }
 
+var _ FileHandle = (*Overlay)(nil)
+
 // NewSession returns Session.
 func NewSession() Session {
 	return &session{
@@ -112,9 +116,13 @@ func NewSession() Session {
 	}
 }
 
-var _ Session = (*session)(nil)
-
-func (s session) GetFile(uri uri.URI) FileHandle {
+func (s *session) GetFile(uri uri.URI) FileHandle {
+	s.overlayMu.RLock()
+	overlay, ok := s.getOverlay(uri)
+	s.overlayMu.RUnlock()
+	if ok {
+		return overlay
+	}
 	return nil
 }
 
@@ -246,7 +254,7 @@ func (s *session) getOverlay(uri uri.URI) (overlay *Overlay, ok bool) {
 	return
 }
 
-func (s *session) openOverlay(ctx context.Context, uri uri.URI, data []byte) {
+func (s *session) openOverlay(_ context.Context, uri uri.URI, data []byte) {
 	s.overlayMu.Lock()
 	s.overlays[uri] = &Overlay{
 		session:   s,
@@ -256,6 +264,14 @@ func (s *session) openOverlay(ctx context.Context, uri uri.URI, data []byte) {
 		unchanged: true,
 	}
 	s.overlayMu.Unlock()
+}
+
+func (o *Overlay) FileSystem() FileSystem {
+	return o.session
+}
+
+func (o *Overlay) Read(context.Context) ([]byte, string, error) {
+	return o.data, o.hash, nil
 }
 
 func hashContent(content []byte) string {
