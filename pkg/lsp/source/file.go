@@ -32,7 +32,10 @@ type File interface {
 	URI() uri.URI
 	View() View
 	Handle(ctx context.Context) FileHandle
-	// TODO: Fix appropriately.
+}
+
+type ProtoFile interface {
+	File
 	Proto() registry.Proto
 }
 
@@ -61,9 +64,6 @@ type fileBase struct {
 
 	view View
 
-	// TODO: Fix appropriately.
-	proto registry.Proto
-
 	handleMu *sync.RWMutex
 	handle   FileHandle
 }
@@ -87,6 +87,13 @@ func (f *fileBase) Handle(ctx context.Context) FileHandle {
 	return f.handle
 }
 
-func (f *fileBase) Proto() registry.Proto {
+type protoFile struct {
+	fileBase
+	proto registry.Proto
+}
+
+var _ ProtoFile = (*protoFile)(nil)
+
+func (f *protoFile) Proto() registry.Proto {
 	return f.proto
 }
