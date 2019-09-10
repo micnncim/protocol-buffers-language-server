@@ -13,7 +13,6 @@ require (
 	github.com/golang/mock v1.3.1
 	github.com/kelseyhightower/envconfig v1.4.0
 	go.uber.org/atomic v1.4.0
-	go.uber.org/multierr v1.1.1-0.20190429210458-bd075f90b08f
 	go.uber.org/zap v1.10.1-0.20190430155229-8a2ee5670ced
 )
 

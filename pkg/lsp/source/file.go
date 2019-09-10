@@ -39,16 +39,35 @@ type ProtoFile interface {
 	ProtoSet() registry.ProtoSet
 }
 
+// FileReader reads file's content and returns the data and hash.
 type FileReader interface {
 	Read(ctx context.Context) (data []byte, hash string, err error)
 }
 
+// FileHandle represents a handle to a specific version of a single file from
+// a specific file system.
 type FileHandle interface {
-	File
 	FileReader
+	File() File
+	FileSystem() FileSystem
 }
 
+// FileHandle represents a handle to a specific version of a single protobuf file from
+// a specific file system.
 type ProtoFileHandle interface {
-	ProtoFile
 	FileReader
+	ProtoFile() ProtoFile
+	FileSystem() FileSystem
+}
+
+// FileSystem is the interface to something that provides file contents.
+type FileSystem interface {
+	// GetFile returns a handle for the specified file.
+	GetFile(uri uri.URI) FileHandle
+}
+
+// ProtoFileSystem is the interface to something that provides protobuf file contents.
+type ProtoFileSystem interface {
+	// GetProtoFile returns a handle for the specified file.
+	GetProtoFile(uri uri.URI) ProtoFileHandle
 }

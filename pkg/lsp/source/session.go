@@ -38,6 +38,8 @@ var (
 // of the client.
 // A session may have many active views at any given time.
 type Session interface {
+	FileSystem
+
 	// AddView creates a new View, adds it to the Session and returns it.
 	AddView(ctx context.Context, view View)
 
@@ -57,7 +59,7 @@ type Session interface {
 	Shutdown(ctx context.Context)
 
 	// DidOpen is invoked each time a file is opened in the editor.
-	DidOpen(ctx context.Context, uri uri.URI)
+	DidOpen(ctx context.Context, uri uri.URI, text []byte)
 
 	// DidSave is invoked each time an open file is saved in the editor.
 	DidSave(uri uri.URI)
@@ -69,8 +71,6 @@ type Session interface {
 	IsOpen(uri uri.URI) bool
 
 	SetOverlay(uri uri.URI, data []byte) (isFirstChange bool)
-
-	GetOverlay(uri uri.URI) (*Overlay, bool)
 }
 
 type session struct {
@@ -113,6 +113,10 @@ func NewSession() Session {
 }
 
 var _ Session = (*session)(nil)
+
+func (s session) GetFile(uri uri.URI) FileHandle {
+	return nil
+}
 
 func (s *session) AddView(ctx context.Context, view View) {
 	s.viewMu.Lock()
@@ -180,10 +184,11 @@ func (s *session) Shutdown(ctx context.Context) {
 	s.viewMap = nil
 }
 
-func (s *session) DidOpen(ctx context.Context, uri uri.URI) {
+func (s *session) DidOpen(ctx context.Context, uri uri.URI, text []byte) {
 	s.openFilesMu.Lock()
 	s.openFiles[uri] = true
 	s.openFilesMu.Unlock()
+	s.openOverlay(ctx, uri, text)
 }
 
 func (s *session) DidSave(uri uri.URI) {
@@ -234,11 +239,23 @@ func (s *session) SetOverlay(uri uri.URI, data []byte) (isFirstChange bool) {
 	return
 }
 
-func (s *session) GetOverlay(uri uri.URI) (overlay *Overlay, ok bool) {
+func (s *session) getOverlay(uri uri.URI) (overlay *Overlay, ok bool) {
 	s.overlayMu.RLock()
 	overlay, ok = s.overlays[uri]
 	s.overlayMu.RUnlock()
 	return
+}
+
+func (s *session) openOverlay(ctx context.Context, uri uri.URI, data []byte) {
+	s.overlayMu.Lock()
+	s.overlays[uri] = &Overlay{
+		session:   s,
+		uri:       uri,
+		data:      data,
+		hash:      hashContent(data),
+		unchanged: true,
+	}
+	s.overlayMu.Unlock()
 }
 
 func hashContent(content []byte) string {
