@@ -20,44 +20,47 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/go-language-server/protocol"
+
+	"github.com/micnncim/protocol-buffers-language-server/pkg/logging"
 )
 
 // TODO: Match position with line and column.
 // Currently matches with only line.
-func (s *Server) definition(_ context.Context, params *protocol.TextDocumentPositionParams) (result []protocol.Location, err error) {
-	logger := s.logger.With(zap.Any("params", params))
+func (s *Server) definition(ctx context.Context, params *protocol.TextDocumentPositionParams) (result []protocol.Location, err error) {
+	logger := logging.FromContext(ctx)
+	logger = logger.With(zap.Any("params", params))
 
 	uri := params.TextDocument.URI
 
 	view, ok := s.session.ViewOf(uri)
 	if !ok {
-		logger.Info("view not found", zap.String("filename", uri.Filename()))
+		logger.Warn("view not found", zap.String("filename", uri.Filename()))
 		return
 	}
 
 	protoFile, ok := view.GetFile(uri)
 	if !ok {
-		logger.Info("file not found", zap.String("filename", uri.Filename()))
+		logger.Warn("file not found", zap.String("filename", uri.Filename()))
 		return
 	}
 
 	proto, ok := protoFile.ProtoSet().GetProtoByFilename(uri.Filename())
 	if !ok {
-		logger.Info("file not found", zap.String("filename", uri.Filename()))
+		logger.Warn("file not found", zap.String("filename", uri.Filename()))
 		return
 	}
 
 	line := int(params.Position.Line)
 	field, ok := proto.GetMessageFieldByLine(line)
 	if !ok {
-		logger.Info("field not found", zap.Int("line", line))
+		logger.Warn("field not found", zap.Int("line", line))
 		return
 	}
 
 	typ := field.ProtoField.Type
 	m, ok := proto.GetMessageByName(typ)
 	if !ok {
-		logger.Info("message not found", zap.String("name", typ))
+		logger.Warn("message not found", zap.String("name", typ))
 		return
 	}
 

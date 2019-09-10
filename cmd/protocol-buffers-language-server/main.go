@@ -60,7 +60,7 @@ func main() {
 }
 
 func runServer(ctx context.Context, session source.Session, opts ...server.Option) error {
-	run := func(srv *server.Server) {
+	run := func(ctx context.Context, srv *server.Server) {
 		go srv.Run(ctx)
 	}
 
@@ -73,7 +73,7 @@ func runServer(ctx context.Context, session source.Session, opts ...server.Optio
 	}
 
 	stream := jsonrpc2.NewStream(stdout, stderr)
-	srv := server.New(ctx, session, stream, opts...)
+	ctx, srv := server.NewServer(ctx, session, stream, opts...)
 
 	return srv.Run(ctx)
 }
