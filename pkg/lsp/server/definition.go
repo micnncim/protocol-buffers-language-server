@@ -30,16 +30,17 @@ func (s *Server) definition(ctx context.Context, params *protocol.TextDocumentPo
 	logger = logger.With(zap.Any("params", params))
 
 	uri := params.TextDocument.URI
+	filename := uri.Filename()
 
 	view, ok := s.session.ViewOf(uri)
 	if !ok {
-		logger.Warn("view not found", zap.String("filename", uri.Filename()))
+		logger.Warn("view not found", zap.String("filename", filename))
 		return
 	}
 
 	protoFile, err := view.GetFile(uri)
 	if err != nil {
-		logger.Error("file not found", zap.String("filename", uri.Filename()))
+		logger.Error("file not found", zap.String("filename", filename))
 		return
 	}
 
