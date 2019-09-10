@@ -88,6 +88,7 @@ type session struct {
 }
 
 var _ Session = (*session)(nil)
+var _ FileSystem = (*session)(nil)
 
 // Overlay is an Overlay for changed files.
 type Overlay struct {

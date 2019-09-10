@@ -28,8 +28,7 @@ import (
 )
 
 // View represents a single workspace.
-// This is the level at which we maintain configuration like working directory
-// and build tags.
+// This is the level at which we maintain configuration like working directory.
 type View interface {
 	// Session returns the session that created this view.
 	Session() Session
