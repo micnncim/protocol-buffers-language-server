@@ -104,6 +104,48 @@ func (v *view) Folder() uri.URI {
 }
 
 func (v *view) GetFile(uri uri.URI) (File, error) {
+	f, err := v.findFile(uri)
+	if err != nil {
+		return nil, err
+	}
+	if f != nil {
+		return f, nil
+	}
+
+	file := &protoFile{
+		fileBase: fileBase{
+			uri:  uri,
+			view: v,
+		},
+	}
+	v.mapFile(uri, file)
+
+	return file, nil
+}
+
+// SetContent sets the Overlay contents for a file.
+func (v *view) SetContent(ctx context.Context, uri uri.URI, content []byte) (bool, error) {
+	v.mu.Lock()
+	defer v.mu.Unlock()
+
+	if !v.Ignore(uri) {
+		return v.session.SetOverlay(uri, content), nil
+	}
+	return false, nil
+}
+
+func (v *view) Ignore(uri uri.URI) (ok bool) {
+	v.ignoredURIsMu.Lock()
+	_, ok = v.ignoredURIs[uri]
+	v.ignoredURIsMu.Unlock()
+	return
+}
+
+func (v *view) Shutdown(ctx context.Context) error {
+	return v.session.RemoveView(ctx, v)
+}
+
+func (v *view) findFile(uri uri.URI) (File, error) {
 	v.mu.Lock()
 	defer v.mu.Unlock()
 
@@ -131,28 +173,6 @@ func (v *view) GetFile(uri uri.URI) (File, error) {
 		}
 	}
 	return nil, nil
-}
-
-// SetContent sets the Overlay contents for a file.
-func (v *view) SetContent(ctx context.Context, uri uri.URI, content []byte) (bool, error) {
-	v.mu.Lock()
-	defer v.mu.Unlock()
-
-	if !v.Ignore(uri) {
-		return v.session.SetOverlay(uri, content), nil
-	}
-	return false, nil
-}
-
-func (v *view) Ignore(uri uri.URI) (ok bool) {
-	v.ignoredURIsMu.Lock()
-	_, ok = v.ignoredURIs[uri]
-	v.ignoredURIsMu.Unlock()
-	return
-}
-
-func (v *view) Shutdown(ctx context.Context) error {
-	return v.session.RemoveView(ctx, v)
 }
 
 func (v *view) mapFile(uri uri.URI, f File) {
