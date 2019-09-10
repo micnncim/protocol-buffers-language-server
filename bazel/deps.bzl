@@ -764,3 +764,15 @@ def go_repositories():
         sum = "h1:Im6hONhd3pLkfDFsbRgu68RDNkGF1r3dvMUtDTo2cv8=",
         version = "v1.4.0",
     )
+    go_repository(
+        name = "com_github_bazelbuild_bazelisk",
+        importpath = "github.com/bazelbuild/bazelisk",
+        sum = "h1:YRIIdISvlGj8UoPji/8hkwxOrbQPE84i4Wb8u3frGMM=",
+        version = "v0.0.8",
+    )
+    go_repository(
+        name = "com_github_hashicorp_go_version",
+        importpath = "github.com/hashicorp/go-version",
+        sum = "h1:bPIoEKD27tNdebFGGxxYwcL4nepeY4j1QP23PFRGzg0=",
+        version = "v1.1.0",
+    )

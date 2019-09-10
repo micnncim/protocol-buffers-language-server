@@ -12,35 +12,31 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-.PHONY: test
-test:
-	GO111MODULE=on go test -race ./...
-
 .PHONY: dep
-dep:
-	GO111MODULE=on go mod tidy
-	bazelisk run //:gazelle
-	bazelisk run //:gazelle -- update-repos -from_file=go.mod -to_macro=bazel/deps.bzl%go_repositories
+dep: bin/bazelisk
+	go mod tidy
+	bin/bazelisk run //:gazelle
+	bin/bazelisk run //:gazelle -- update-repos -from_file=go.mod -to_macro=bazel/deps.bzl%go_repositories
 
-.PHONY: bazel-run
-bazel-run:
-	bazelisk run //cmd/protocol-buffers-language-server
+.PHONY: run
+run: bin/bazelisk
+	bin/bazelisk run //cmd/protocol-buffers-language-server
 
-.PHONY: bazel-build
-bazel-build:
-	bazelisk build //...
+.PHONY: build
+build: bin/bazelisk
+	bin/bazelisk build //...
 
-.PHONY: bazel-test
-bazel-test:
-	bazelisk test //...
+.PHONY: test
+test: bin/bazelisk
+	bin/bazelisk test //...
 
 .PHONY: buildifier
-buildifier:
-	bazelisk run //:buildifier
+buildifier: bin/bazelisk
+	bin/bazelisk run //:buildifier
 
-.PHONY: bazel-clean
-bazel-clean:
-	bazelisk clean
+.PHONY: clean
+clean: bin/bazelisk
+	bin/bazelisk clean
 
 .PHONY: coverage
 coverage:
@@ -49,3 +45,7 @@ coverage:
 .PHONY: expose-generated-go
 expose-generated-go:
 	./hack/expose-generated-go.sh micnncim protocol-buffers-language-server
+
+bin/bazelisk:
+	@mkdir -p bin
+	go build -o bin/bazelisk github.com/bazelbuild/bazelisk
