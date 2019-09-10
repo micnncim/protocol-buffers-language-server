@@ -97,10 +97,10 @@ func (f fileBase) View() View {
 }
 
 func (f *fileBase) Handle(ctx context.Context) FileHandle {
+	f.handleMu.Lock()
+	defer f.handleMu.Unlock()
 	if f.handle == nil {
-		f.handleMu.Lock()
 		f.handle = f.view.Session().GetFile(f.URI())
-		f.handleMu.Unlock()
 	}
 	return f.handle
 }
