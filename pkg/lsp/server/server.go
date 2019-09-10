@@ -29,6 +29,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/micnncim/protocol-buffers-language-server/pkg/config"
+	"github.com/micnncim/protocol-buffers-language-server/pkg/logging"
 	"github.com/micnncim/protocol-buffers-language-server/pkg/lsp/source"
 )
 
@@ -65,7 +66,7 @@ func WithLogger(logger *zap.Logger) Option {
 	}
 }
 
-func New(ctx context.Context, session source.Session, stream jsonrpc2.Stream, opts ...Option) *Server {
+func NewServer(ctx context.Context, session source.Session, stream jsonrpc2.Stream, opts ...Option) (context.Context, *Server) {
 	s := &Server{
 		state:   stateCreated,
 		stateMu: &sync.RWMutex{},
@@ -82,20 +83,22 @@ func New(ctx context.Context, session source.Session, stream jsonrpc2.Stream, op
 		jsonrpc2.WithLogger(s.logger.Named("jsonrpc2")),
 	}
 	s.Conn, s.Client = protocol.NewServer(ctx, s, stream, zap.NewNop(), jsonrpcOpts...)
-	s.logger = s.logger.Named("server")
 
-	return s
+	logger := s.logger.Named("server")
+	logging.WithContext(ctx, logger)
+
+	return ctx, s
 }
 
 // RunServerOnPort starts a server on the given port and does not exit.
 // This function exists for debugging purposes.
-func RunServerOnPort(ctx context.Context, session source.Session, port int, handler func(s *Server), opts ...Option) error {
+func RunServerOnPort(ctx context.Context, session source.Session, port int, handler func(ctx context.Context, s *Server), opts ...Option) error {
 	return RunServerOnAddress(ctx, session, fmt.Sprintf(":%v", port), handler, opts...)
 }
 
 // RunServerOnPort starts a server on the given port and does not exit.
 // This function exists for debugging purposes.
-func RunServerOnAddress(ctx context.Context, session source.Session, addr string, handler func(s *Server), opts ...Option) error {
+func RunServerOnAddress(ctx context.Context, session source.Session, addr string, handler func(ctx context.Context, s *Server), opts ...Option) error {
 	ln, err := net.Listen("tcp", addr)
 	if err != nil {
 		return err
@@ -105,7 +108,7 @@ func RunServerOnAddress(ctx context.Context, session source.Session, addr string
 		if err != nil {
 			return err
 		}
-		handler(New(ctx, session, jsonrpc2.NewStream(conn, conn), opts...))
+		handler(NewServer(ctx, session, jsonrpc2.NewStream(conn, conn), opts...))
 	}
 }
 
