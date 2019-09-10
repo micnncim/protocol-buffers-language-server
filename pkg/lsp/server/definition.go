@@ -21,6 +21,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/micnncim/protocol-buffers-language-server/pkg/logging"
+	"github.com/micnncim/protocol-buffers-language-server/pkg/lsp/source"
 )
 
 // TODO: Match position with line and column.
@@ -38,9 +39,14 @@ func (s *Server) definition(ctx context.Context, params *protocol.TextDocumentPo
 		return
 	}
 
-	protoFile, err := view.GetFile(uri)
+	f, err := view.GetFile(uri)
 	if err != nil {
 		logger.Error("file not found", zap.String("filename", filename))
+		return
+	}
+
+	protoFile, ok := f.(source.ProtoFile)
+	if !ok {
 		return
 	}
 

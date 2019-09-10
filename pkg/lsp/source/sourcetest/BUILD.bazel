@@ -24,7 +24,6 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//pkg/lsp/source:go_default_library",
-        "//pkg/proto/registry:go_default_library",
         "@com_github_go_language_server_uri//:go_default_library",
         "@com_github_golang_mock//gomock:go_default_library",
     ],
