@@ -20,6 +20,7 @@ package source
 
 import (
 	"context"
+	"sync"
 
 	"github.com/go-language-server/uri"
 
@@ -36,7 +37,7 @@ type File interface {
 // ProtoFile represents a source file of protobuf.
 type ProtoFile interface {
 	File
-	ProtoSet() registry.ProtoSet
+	Proto() registry.Proto
 }
 
 // FileReader reads file's content and returns the data and hash.
@@ -55,9 +56,8 @@ type FileHandle interface {
 // FileHandle represents a handle to a specific version of a single protobuf file from
 // a specific file system.
 type ProtoFileHandle interface {
-	FileReader
+	FileHandle
 	ProtoFile() ProtoFile
-	FileSystem() FileSystem
 }
 
 // FileSystem is the interface to something that provides file contents.
@@ -70,4 +70,37 @@ type FileSystem interface {
 type ProtoFileSystem interface {
 	// GetProtoFile returns a handle for the specified file.
 	GetProtoFile(uri uri.URI) ProtoFileHandle
+}
+
+type protoFile struct {
+	fileBase
+
+	registry.Proto
+}
+
+type fileBase struct {
+	uri      uri.URI
+	filename string
+
+	view View
+
+	handleMu *sync.RWMutex
+	handle   FileHandle
+}
+
+func (f *fileBase) URI() uri.URI {
+	return f.uri
+}
+
+func (f fileBase) View() View {
+	return f.view
+}
+
+func (f *fileBase) Handle(ctx context.Context) FileHandle {
+	if f.handle == nil {
+		f.handleMu.Lock()
+		f.handle = f.view.Session().GetFile(f.URI())
+		f.handleMu.Unlock()
+	}
+	return f.handle
 }

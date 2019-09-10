@@ -20,6 +20,8 @@ package source
 
 import (
 	"context"
+	"os"
+	"path/filepath"
 	"sync"
 
 	"github.com/go-language-server/uri"
@@ -39,7 +41,7 @@ type View interface {
 	Folder() uri.URI
 
 	// GetFile returns the file object for a given uri.
-	GetFile(uri uri.URI) (ProtoFile, bool)
+	GetFile(uri uri.URI) (ProtoFile, error)
 
 	// Called to set the effective contents of a file from this view.
 	SetContent(ctx context.Context, uri uri.URI, content []byte) (wasFirstChange bool, err error)
@@ -101,11 +103,34 @@ func (v *view) Folder() uri.URI {
 	return v.folder
 }
 
-func (v *view) GetFile(uri uri.URI) (f ProtoFile, ok bool) {
-	v.mu.RLock()
-	f, ok = v.uriToProtoFile[uri]
-	v.mu.RUnlock()
-	return
+func (v *view) GetFile(uri uri.URI) (ProtoFile, error) {
+	v.mu.Lock()
+	defer v.mu.Unlock()
+
+	if f, ok := v.uriToProtoFile[uri]; ok {
+		return f, nil
+	}
+
+	filename := uri.Filename()
+	basename := filepath.Base(filename)
+	targetStat, err := os.Stat(filename)
+	if os.IsNotExist(err) {
+		return nil, err
+	}
+	if err != nil {
+		return nil, nil // the file may exist, return without an error
+	}
+	for _, f := range v.basenameToProtoFile[basename] {
+		stat, err := os.Stat(f.URI().Filename())
+		if err != nil {
+			continue
+		}
+		if os.SameFile(targetStat, stat) {
+			v.mapFile(uri, f)
+			return f, nil
+		}
+	}
+	return nil, nil
 }
 
 // SetContent sets the Overlay contents for a file.
@@ -128,4 +153,12 @@ func (v *view) Ignore(uri uri.URI) (ok bool) {
 
 func (v *view) Shutdown(ctx context.Context) error {
 	return v.session.RemoveView(ctx, v)
+}
+
+func (v *view) mapFile(uri uri.URI, f ProtoFile) {
+	v.mu.Lock()
+	v.uriToProtoFile[uri] = f
+	basename := filepath.Base(uri.Filename())
+	v.basenameToProtoFile[basename] = append(v.basenameToProtoFile[basename], f)
+	v.mu.Unlock()
 }

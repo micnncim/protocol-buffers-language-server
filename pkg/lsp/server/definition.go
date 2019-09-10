@@ -17,9 +17,8 @@ package server
 import (
 	"context"
 
-	"go.uber.org/zap"
-
 	"github.com/go-language-server/protocol"
+	"go.uber.org/zap"
 
 	"github.com/micnncim/protocol-buffers-language-server/pkg/logging"
 )
@@ -38,17 +37,13 @@ func (s *Server) definition(ctx context.Context, params *protocol.TextDocumentPo
 		return
 	}
 
-	protoFile, ok := view.GetFile(uri)
-	if !ok {
-		logger.Warn("file not found", zap.String("filename", uri.Filename()))
+	protoFile, err := view.GetFile(uri)
+	if err != nil {
+		logger.Error("file not found", zap.String("filename", uri.Filename()))
 		return
 	}
 
-	proto, ok := protoFile.ProtoSet().GetProtoByFilename(uri.Filename())
-	if !ok {
-		logger.Warn("file not found", zap.String("filename", uri.Filename()))
-		return
-	}
+	proto := protoFile.Proto()
 
 	line := int(params.Position.Line)
 	field, ok := proto.GetMessageFieldByLine(line)
@@ -58,6 +53,7 @@ func (s *Server) definition(ctx context.Context, params *protocol.TextDocumentPo
 	}
 
 	typ := field.ProtoField.Type
+	// TODO: Search the requested proto file and imported proto files.
 	m, ok := proto.GetMessageByName(typ)
 	if !ok {
 		logger.Warn("message not found", zap.String("name", typ))
