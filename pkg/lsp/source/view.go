@@ -101,12 +101,11 @@ func (v *view) Folder() uri.URI {
 	return v.folder
 }
 
-func (v *view) GetFile(uri uri.URI) (ProtoFile, bool) {
+func (v *view) GetFile(uri uri.URI) (f ProtoFile, ok bool) {
 	v.mu.RLock()
-	defer v.mu.RUnlock()
-
-	f, ok := v.uriToProtoFile[uri]
-	return f, ok
+	f, ok = v.uriToProtoFile[uri]
+	v.mu.RUnlock()
+	return
 }
 
 // SetContent sets the Overlay contents for a file.
