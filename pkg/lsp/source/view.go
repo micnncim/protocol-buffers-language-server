@@ -41,7 +41,7 @@ type View interface {
 	Folder() uri.URI
 
 	// GetFile returns the file object for a given uri.
-	GetFile(uri uri.URI) (ProtoFile, error)
+	GetFile(uri uri.URI) (File, error)
 
 	// Called to set the effective contents of a file from this view.
 	SetContent(ctx context.Context, uri uri.URI, content []byte) (wasFirstChange bool, err error)
@@ -65,8 +65,8 @@ type view struct {
 
 	// keep track of files by uri and by basename, a single file may be mapped
 	// to multiple uris, and the same basename may map to multiple files
-	uriToProtoFile      map[uri.URI]ProtoFile
-	basenameToProtoFile map[string][]ProtoFile
+	filesByURI  map[uri.URI]File
+	filesByBase map[string][]File
 
 	// ignoredURIs is the set of URIs of files that we ignore.
 	ignoredURIsMu *sync.RWMutex
@@ -79,15 +79,15 @@ var _ View = (*view)(nil)
 
 func NewView(session Session, name string, folder uri.URI) View {
 	return &view{
-		id:                  viewIndex.Add(1),
-		session:             session,
-		name:                name,
-		folder:              folder,
-		uriToProtoFile:      make(map[uri.URI]ProtoFile),
-		basenameToProtoFile: make(map[string][]ProtoFile),
-		ignoredURIsMu:       nil,
-		ignoredURIs:         nil,
-		mu:                  &sync.RWMutex{},
+		id:            viewIndex.Add(1),
+		session:       session,
+		name:          name,
+		folder:        folder,
+		filesByURI:    make(map[uri.URI]File),
+		filesByBase:   make(map[string][]File),
+		ignoredURIsMu: nil,
+		ignoredURIs:   nil,
+		mu:            &sync.RWMutex{},
 	}
 }
 
@@ -103,11 +103,11 @@ func (v *view) Folder() uri.URI {
 	return v.folder
 }
 
-func (v *view) GetFile(uri uri.URI) (ProtoFile, error) {
+func (v *view) GetFile(uri uri.URI) (File, error) {
 	v.mu.Lock()
 	defer v.mu.Unlock()
 
-	if f, ok := v.uriToProtoFile[uri]; ok {
+	if f, ok := v.filesByURI[uri]; ok {
 		return f, nil
 	}
 
@@ -120,7 +120,7 @@ func (v *view) GetFile(uri uri.URI) (ProtoFile, error) {
 	if err != nil {
 		return nil, nil // the file may exist, return without an error
 	}
-	for _, f := range v.basenameToProtoFile[basename] {
+	for _, f := range v.filesByBase[basename] {
 		stat, err := os.Stat(f.URI().Filename())
 		if err != nil {
 			continue
@@ -155,10 +155,10 @@ func (v *view) Shutdown(ctx context.Context) error {
 	return v.session.RemoveView(ctx, v)
 }
 
-func (v *view) mapFile(uri uri.URI, f ProtoFile) {
+func (v *view) mapFile(uri uri.URI, f File) {
 	v.mu.Lock()
-	v.uriToProtoFile[uri] = f
+	v.filesByURI[uri] = f
 	basename := filepath.Base(uri.Filename())
-	v.basenameToProtoFile[basename] = append(v.basenameToProtoFile[basename], f)
+	v.filesByBase[basename] = append(v.filesByBase[basename], f)
 	v.mu.Unlock()
 }

@@ -36,9 +36,11 @@ gomock(
     name = "mock_source",
     out = "source.mock.go",
     interfaces = [
+        "File",
+        "FileHandle",
+        "FileSystem",
         "Session",
         "View",
-        "ProtoFile",
     ],
     library = "//pkg/lsp/source:go_default_library",
     package = "sourcetest",

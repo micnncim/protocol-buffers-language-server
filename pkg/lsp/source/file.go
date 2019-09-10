@@ -31,33 +31,20 @@ import (
 type File interface {
 	URI() uri.URI
 	View() View
-	Version() string
-}
-
-// ProtoFile represents a source file of protobuf.
-type ProtoFile interface {
-	File
+	Handle(ctx context.Context) FileHandle
+	// TODO: Fix appropriately.
 	Proto() registry.Proto
-}
-
-// FileReader reads file's content and returns the data and hash.
-type FileReader interface {
-	Read(ctx context.Context) (data []byte, hash string, err error)
 }
 
 // FileHandle represents a handle to a specific version of a single file from
 // a specific file system.
 type FileHandle interface {
-	FileReader
-	File() File
+	// FileSystem returns the file system this handle was acquired from.
 	FileSystem() FileSystem
-}
 
-// FileHandle represents a handle to a specific version of a single protobuf file from
-// a specific file system.
-type ProtoFileHandle interface {
-	FileHandle
-	ProtoFile() ProtoFile
+	// Read reads the contents of a file and returns it along with its hash value.
+	// If the file is not available, returns a nil slice and an error.
+	Read(ctx context.Context) ([]byte, string, error)
 }
 
 // FileSystem is the interface to something that provides file contents.
@@ -66,26 +53,22 @@ type FileSystem interface {
 	GetFile(uri uri.URI) FileHandle
 }
 
-// ProtoFileSystem is the interface to something that provides protobuf file contents.
-type ProtoFileSystem interface {
-	// GetProtoFile returns a handle for the specified file.
-	GetProtoFile(uri uri.URI) ProtoFileHandle
-}
-
-type protoFile struct {
-	fileBase
-
-	registry.Proto
-}
-
+// fileBase implements File.
+// fileBase holds the common functionality for all files.
+// It is intended to be embedded in the file implementations.
 type fileBase struct {
 	uri uri.URI
 
 	view View
 
+	// TODO: Fix appropriately.
+	proto registry.Proto
+
 	handleMu *sync.RWMutex
 	handle   FileHandle
 }
+
+var _ File = (*fileBase)(nil)
 
 func (f *fileBase) URI() uri.URI {
 	return f.uri
@@ -102,4 +85,8 @@ func (f *fileBase) Handle(ctx context.Context) FileHandle {
 		f.handle = f.view.Session().GetFile(f.URI())
 	}
 	return f.handle
+}
+
+func (f *fileBase) Proto() registry.Proto {
+	return f.proto
 }
