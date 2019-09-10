@@ -29,7 +29,8 @@ import (
 
 func (s *Server) didOpen(ctx context.Context, params *protocol.DidOpenTextDocumentParams) error {
 	uri := params.TextDocument.URI
-	s.session.DidOpen(ctx, uri)
+	text := []byte(params.TextDocument.Text)
+	s.session.DidOpen(ctx, uri, text)
 	return nil
 }
 
