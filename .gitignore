@@ -1,9 +1,10 @@
-# Bazel
 /bazel-bin
 /bazel-genfiles
 /bazel-out
 /bazel-protocol-buffers-language-server
 /bazel-testlogs
+
+/bin
 
 *.pb.go
 *.pb.validate.go
