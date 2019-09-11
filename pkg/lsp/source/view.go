@@ -99,8 +99,8 @@ func NewView(session Session, name string, folder uri.URI) View {
 		filesByBase:  make(map[string][]File),
 		openFiles:    make(map[uri.URI]bool),
 		openFileMu:   &sync.RWMutex{},
-		ignoredURIMu: nil,
-		ignoredURIs:  nil,
+		ignoredURIs:  make(map[uri.URI]struct{}),
+		ignoredURIMu: &sync.RWMutex{},
 	}
 }
 
