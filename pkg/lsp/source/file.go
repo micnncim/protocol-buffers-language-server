@@ -20,7 +20,6 @@ package source
 
 import (
 	"context"
-	"sync"
 
 	"github.com/go-language-server/uri"
 
@@ -31,69 +30,76 @@ import (
 type File interface {
 	URI() uri.URI
 	View() View
-	Handle(ctx context.Context) FileHandle
+	FileSystem() FileSystem
+	Read(ctx context.Context) ([]byte, string, error)
+
+	Saved() bool
+	// TODO: Fix appropriate function name.
+	SetSaved(saved bool)
 }
 
 type ProtoFile interface {
 	File
 	Proto() registry.Proto
-}
-
-// FileHandle represents a handle to a specific version of a single file from
-// a specific file system.
-type FileHandle interface {
-	// FileSystem returns the file system this handle was acquired from.
-	FileSystem() FileSystem
-
-	// Read reads the contents of a file and returns it along with its hash value.
-	// If the file is not available, returns a nil slice and an error.
-	Read(ctx context.Context) ([]byte, string, error)
+	SetProto(proto registry.Proto)
 }
 
 // FileSystem is the interface to something that provides file contents.
 type FileSystem interface {
-	// GetFile returns a handle for the specified file.
-	GetFile(uri uri.URI) FileHandle
+	// GetFile returns a file whose the given uri.
+	GetFile(uri uri.URI) (File, error)
 }
 
-// fileBase implements File.
-// fileBase holds the common functionality for all files.
-// It is intended to be embedded in the file implementations.
-type fileBase struct {
-	uri uri.URI
+// file is a file for changed files.
+type file struct {
+	session Session
+	view    View
 
-	view View
+	uri  uri.URI
+	data []byte
+	hash string
 
-	handleMu *sync.RWMutex
-	handle   FileHandle
+	// saved is true if a file has been saved on disk.
+	saved bool
 }
 
-var _ File = (*fileBase)(nil)
-
-func (f *fileBase) URI() uri.URI {
-	return f.uri
-}
-
-func (f *fileBase) View() View {
-	return f.view
-}
-
-func (f *fileBase) Handle(ctx context.Context) FileHandle {
-	f.handleMu.Lock()
-	defer f.handleMu.Unlock()
-	if f.handle == nil {
-		f.handle = f.view.Session().GetFile(f.URI())
-	}
-	return f.handle
-}
+var _ File = (*file)(nil)
 
 type protoFile struct {
-	fileBase
+	File
 	proto registry.Proto
 }
 
 var _ ProtoFile = (*protoFile)(nil)
 
-func (f *protoFile) Proto() registry.Proto {
-	return f.proto
+func (f *file) URI() uri.URI {
+	return f.uri
+}
+
+func (f *file) View() View {
+	return f.view
+}
+
+func (f *file) FileSystem() FileSystem {
+	return f.view
+}
+
+func (f *file) Read(context.Context) ([]byte, string, error) {
+	return f.data, f.hash, nil
+}
+
+func (f *file) Saved() bool {
+	return f.saved
+}
+
+func (f *file) SetSaved(saved bool) {
+	f.saved = saved
+}
+
+func (p *protoFile) Proto() registry.Proto {
+	return p.proto
+}
+
+func (p *protoFile) SetProto(proto registry.Proto) {
+	p.proto = proto
 }

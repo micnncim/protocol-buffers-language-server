@@ -20,7 +20,6 @@ package server
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	"github.com/go-language-server/jsonrpc2"
@@ -30,7 +29,10 @@ import (
 func (s *Server) didOpen(ctx context.Context, params *protocol.DidOpenTextDocumentParams) error {
 	uri := params.TextDocument.URI
 	text := []byte(params.TextDocument.Text)
-	s.session.DidOpen(ctx, uri, text)
+
+	v := s.session.ViewOf(uri)
+	v.DidOpen(uri, text)
+
 	return nil
 }
 
@@ -40,25 +42,19 @@ func (s *Server) didChange(ctx context.Context, params *protocol.DidChangeTextDo
 	}
 
 	uri := params.TextDocument.URI
+	// TODO: Support incremental change. Currently support only full change.
+	text := params.ContentChanges[0].Text
 
-	text, isFullChanged := getChangedText(params.ContentChanges)
-
-	// TODO: Implement logic when isFullChanged
-	if isFullChanged {
-		switch s.config.TextDocumentSyncKind {
-		case protocol.None:
-		case protocol.Full:
-		case protocol.Incremental:
-		}
+	switch s.config.TextDocumentSyncKind {
+	case protocol.None:
+		return nil
+	case protocol.Full:
+	case protocol.Incremental:
+		return fmt.Errorf("incremental change is not supported yet")
 	}
 
-	view, ok := s.session.ViewOf(uri)
-	if !ok {
-		return errors.New("view not found")
-	}
-	if _, err := view.SetContent(ctx, uri, []byte(text)); err != nil {
-		return err
-	}
+	v := s.session.ViewOf(uri)
+	v.SetContent(ctx, uri, []byte(text))
 
 	return nil
 }
@@ -66,31 +62,18 @@ func (s *Server) didChange(ctx context.Context, params *protocol.DidChangeTextDo
 func (s *Server) didClose(ctx context.Context, params *protocol.DidCloseTextDocumentParams) error {
 	uri := params.TextDocument.URI
 
-	s.session.DidClose(uri)
-	view, ok := s.session.ViewOf(uri)
-	if !ok {
-		return fmt.Errorf("view of %s not found", uri.Filename())
-	}
-	if _, err := view.SetContent(ctx, uri, nil); err != nil {
-		return err
-	}
+	v := s.session.ViewOf(uri)
+	v.DidClose(uri)
+	v.SetContent(ctx, uri, nil)
 
 	return nil
 }
 
 func (s *Server) didSave(_ context.Context, params *protocol.DidSaveTextDocumentParams) error {
-	s.session.DidSave(params.TextDocument.URI)
-	return nil
-}
+	uri := params.TextDocument.URI
 
-func getChangedText(changes []protocol.TextDocumentContentChangeEvent) (text string, isFullChanged bool) {
-	if len(changes) > 1 {
-		return
-	}
-	// The length of the changes must be 1 at this point.
-	if changes[0].Range == nil && changes[0].RangeLength == 0 {
-		text, isFullChanged = changes[0].Text, true
-		return
-	}
-	return
+	v := s.session.ViewOf(uri)
+	v.DidSave(uri)
+
+	return nil
 }

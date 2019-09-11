@@ -33,13 +33,9 @@ func (s *Server) definition(ctx context.Context, params *protocol.TextDocumentPo
 	uri := params.TextDocument.URI
 	filename := uri.Filename()
 
-	view, ok := s.session.ViewOf(uri)
-	if !ok {
-		logger.Warn("view not found", zap.String("filename", filename))
-		return
-	}
+	v := s.session.ViewOf(uri)
 
-	f, err := view.GetFile(uri)
+	f, err := v.GetFile(uri)
 	if err != nil {
 		logger.Error("file not found", zap.String("filename", filename))
 		return
