@@ -37,12 +37,6 @@ var (
 // Session represents a single connection from a client.
 // A session just manages views and does not access files directly.
 type Session interface {
-	// AddView creates a new View, adds it to the Session and returns it.
-	AddView(ctx context.Context, view View)
-
-	// RemoveView removes a View with a matching name.
-	RemoveView(ctx context.Context, view View) error
-
 	// View returns a view with a matching name, if the session has one.
 	View(name string) (View, bool)
 
@@ -51,6 +45,12 @@ type Session interface {
 
 	// Views returns the set of active views built by this session.
 	Views() []View
+
+	// AddView creates a new View, adds it to the Session and returns it.
+	AddView(ctx context.Context, view View)
+
+	// RemoveView removes a View with a matching name.
+	RemoveView(ctx context.Context, view View) error
 
 	// Shutdown the session and all views it has created.
 	Shutdown(ctx context.Context)
@@ -73,32 +73,6 @@ func NewSession() Session {
 		viewMap: make(map[uri.URI]View),
 		viewMu:  &sync.RWMutex{},
 	}
-}
-
-func (s *session) AddView(ctx context.Context, view View) {
-	s.viewMu.Lock()
-
-	s.views = append(s.views, view)
-	// we always need to drop the view map
-	s.viewMap = make(map[uri.URI]View)
-
-	s.viewMu.Unlock()
-}
-
-func (s *session) RemoveView(ctx context.Context, view View) error {
-	s.viewMu.Lock()
-	defer s.viewMu.Unlock()
-	// we always need to drop the view map
-	s.viewMap = make(map[uri.URI]View)
-	for i, v := range s.views {
-		if v == view {
-			s.views[i] = s.views[len(s.views)-1]
-			s.views[len(s.views)-1] = nil
-			s.views = s.views[:len(s.views)-1]
-			return nil
-		}
-	}
-	return fmt.Errorf("view %s for %v not found", view.Name(), view.Folder())
 }
 
 func (s *session) View(name string) (View, bool) {
@@ -139,6 +113,32 @@ func (s *session) Views() []View {
 	}
 
 	return views
+}
+
+func (s *session) AddView(ctx context.Context, view View) {
+	s.viewMu.Lock()
+
+	s.views = append(s.views, view)
+	// we always need to drop the view map
+	s.viewMap = make(map[uri.URI]View)
+
+	s.viewMu.Unlock()
+}
+
+func (s *session) RemoveView(ctx context.Context, view View) error {
+	s.viewMu.Lock()
+	defer s.viewMu.Unlock()
+	// we always need to drop the view map
+	s.viewMap = make(map[uri.URI]View)
+	for i, v := range s.views {
+		if v == view {
+			s.views[i] = s.views[len(s.views)-1]
+			s.views[len(s.views)-1] = nil
+			s.views = s.views[:len(s.views)-1]
+			return nil
+		}
+	}
+	return fmt.Errorf("view %s for %v not found", view.Name(), view.Folder())
 }
 
 func (s *session) Shutdown(context.Context) {
