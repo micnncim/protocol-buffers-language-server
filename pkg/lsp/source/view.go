@@ -19,12 +19,16 @@
 package source
 
 import (
+	"bytes"
 	"context"
 	"os"
 	"path/filepath"
 	"sync"
 
 	"github.com/go-language-server/uri"
+
+	"github.com/micnncim/protocol-buffers-language-server/pkg/proto/parser"
+	"github.com/micnncim/protocol-buffers-language-server/pkg/proto/registry"
 )
 
 // View represents a single workspace.
@@ -126,7 +130,7 @@ func (v *view) GetFile(uri uri.URI) (File, error) {
 	}
 
 	file := &protoFile{
-		file: file{
+		File: &file{
 			session: v.Session(),
 			view:    v,
 			uri:     uri,
@@ -138,7 +142,7 @@ func (v *view) GetFile(uri uri.URI) (File, error) {
 }
 
 // SetContent sets the file contents for a file.
-func (v *view) SetContent(ctx context.Context, uri uri.URI, content []byte) {
+func (v *view) SetContent(ctx context.Context, uri uri.URI, data []byte) {
 	if !v.Ignore(uri) {
 		return
 	}
@@ -146,17 +150,26 @@ func (v *view) SetContent(ctx context.Context, uri uri.URI, content []byte) {
 	v.fileMu.Lock()
 	defer v.fileMu.Unlock()
 
-	if content == nil {
+	if data == nil {
 		delete(v.filesByURI, uri)
 		return
 	}
 
-	v.filesByURI[uri] = &file{
-		session: v.Session(),
-		uri:     uri,
-		data:    content,
-		hash:    hashContent(content),
+	pf := &protoFile{
+		File: &file{
+			session: v.Session(),
+			uri:     uri,
+			data:    data,
+			hash:    hashContent(data),
+		},
 	}
+
+	// TODO:
+	//  Control times of parse of proto.
+	//  Currently it parses every time of file change.
+	pf.proto = parseProto(data)
+
+	v.filesByURI[uri] = pf
 }
 
 func (v *view) Ignore(uri uri.URI) (ok bool) {
@@ -204,12 +217,19 @@ func (v *view) IsOpen(uri uri.URI) bool {
 
 func (v *view) openFile(uri uri.URI, data []byte) {
 	v.fileMu.Lock()
-	v.filesByURI[uri] = &file{
-		view: v,
-		uri:  uri,
-		data: data,
-		hash: hashContent(data),
+
+	pf := &protoFile{
+		File: &file{
+			view: v,
+			uri:  uri,
+			data: data,
+			hash: hashContent(data),
+		},
 	}
+
+	pf.proto = parseProto(data)
+	v.filesByURI[uri] = pf
+
 	v.fileMu.Unlock()
 }
 
@@ -251,4 +271,13 @@ func (v *view) mapFile(uri uri.URI, f File) {
 	v.filesByBase[basename] = append(v.filesByBase[basename], f)
 
 	v.fileMu.Unlock()
+}
+
+func parseProto(data []byte) registry.Proto {
+	buf := bytes.NewBuffer(data)
+	proto, err := parser.ParseProto(buf)
+	if err != nil {
+		return nil
+	}
+	return proto
 }

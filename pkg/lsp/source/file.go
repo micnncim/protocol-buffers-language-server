@@ -66,7 +66,7 @@ type file struct {
 var _ File = (*file)(nil)
 
 type protoFile struct {
-	file
+	File
 	proto registry.Proto
 }
 
