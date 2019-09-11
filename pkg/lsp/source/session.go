@@ -89,13 +89,14 @@ func (s *session) View(name string) (View, bool) {
 }
 
 func (s *session) ViewOf(uri uri.URI) View {
-	s.viewMu.RLock()
+	s.viewMu.Lock()
+	defer s.viewMu.Unlock()
+
 	// uri is folder and matches one of viewMap.
 	v, ok := s.viewMap[uri]
 	if ok {
 		return v
 	}
-	s.viewMu.RUnlock()
 
 	v = s.bestView(uri)
 	s.viewMap[uri] = v
