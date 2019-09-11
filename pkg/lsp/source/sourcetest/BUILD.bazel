@@ -36,7 +36,6 @@ gomock(
     out = "source.mock.go",
     interfaces = [
         "File",
-        "FileHandle",
         "FileSystem",
         "Session",
         "View",

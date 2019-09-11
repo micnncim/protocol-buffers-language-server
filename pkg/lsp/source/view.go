@@ -205,13 +205,6 @@ func (v *view) IsOpen(uri uri.URI) bool {
 	return open
 }
 
-func (v *view) getFile(uri uri.URI) (file File, ok bool) {
-	v.fileMu.RLock()
-	file, ok = v.filesByURI[uri]
-	v.fileMu.RUnlock()
-	return
-}
-
 func (v *view) openFile(uri uri.URI, data []byte) {
 	v.fileMu.Lock()
 	v.filesByURI[uri] = &file{
