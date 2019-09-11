@@ -85,8 +85,6 @@ type view struct {
 	// ignoredURIs is the set of URIs of files that we ignore.
 	ignoredURIs  map[uri.URI]struct{}
 	ignoredURIMu *sync.RWMutex
-
-	mu *sync.RWMutex
 }
 
 var _ View = (*view)(nil)
@@ -103,7 +101,6 @@ func NewView(session Session, name string, folder uri.URI) View {
 		openFileMu:   &sync.RWMutex{},
 		ignoredURIMu: nil,
 		ignoredURIs:  nil,
-		mu:           &sync.RWMutex{},
 	}
 }
 
@@ -217,8 +214,8 @@ func (v *view) openFile(uri uri.URI, data []byte) {
 }
 
 func (v *view) findFile(uri uri.URI) (File, error) {
-	v.mu.Lock()
-	defer v.mu.Unlock()
+	v.fileMu.Lock()
+	defer v.fileMu.Unlock()
 
 	if f, ok := v.filesByURI[uri]; ok {
 		return f, nil
@@ -247,9 +244,11 @@ func (v *view) findFile(uri uri.URI) (File, error) {
 }
 
 func (v *view) mapFile(uri uri.URI, f File) {
-	v.mu.Lock()
+	v.fileMu.Lock()
+
 	v.filesByURI[uri] = f
 	basename := filepath.Base(uri.Filename())
 	v.filesByBase[basename] = append(v.filesByBase[basename], f)
-	v.mu.Unlock()
+
+	v.fileMu.Unlock()
 }
