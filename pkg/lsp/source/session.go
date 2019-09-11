@@ -22,6 +22,7 @@ import (
 	"context"
 	"crypto/sha1"
 	"fmt"
+	"strings"
 	"sync"
 
 	"github.com/go-language-server/uri"
@@ -34,12 +35,8 @@ var (
 )
 
 // Session represents a single connection from a client.
-// This is the level at which things like open files are maintained on behalf
-// of the client.
-// A session may have many active views at any given time.
+// A session just manages views and does not access files directly.
 type Session interface {
-	FileSystem
-
 	// AddView creates a new View, adds it to the Session and returns it.
 	AddView(ctx context.Context, view View)
 
@@ -50,27 +47,13 @@ type Session interface {
 	View(name string) (View, bool)
 
 	// ViewOf returns a view corresponding to the given URI.
-	ViewOf(uri uri.URI) (View, bool)
+	ViewOf(uri uri.URI) View
 
 	// Views returns the set of active views built by this session.
 	Views() []View
 
 	// Shutdown the session and all views it has created.
 	Shutdown(ctx context.Context)
-
-	// DidOpen is invoked each time a file is opened in the editor.
-	DidOpen(ctx context.Context, uri uri.URI, text []byte)
-
-	// DidSave is invoked each time an open file is saved in the editor.
-	DidSave(uri uri.URI)
-
-	// DidClose is invoked each time an open file is closed in the editor.
-	DidClose(uri uri.URI)
-
-	// IsOpen can be called to check if the editor has a file currently open.
-	IsOpen(uri uri.URI) bool
-
-	SetOverlay(uri uri.URI, data []byte) (isFirstChange bool)
 }
 
 type session struct {
@@ -79,52 +62,17 @@ type session struct {
 	views   []View
 	viewMap map[uri.URI]View
 	viewMu  *sync.RWMutex
-
-	overlayMu *sync.RWMutex
-	overlays  map[uri.URI]*Overlay
-
-	openFiles   map[uri.URI]bool
-	openFilesMu *sync.RWMutex
 }
 
 var _ Session = (*session)(nil)
-var _ FileSystem = (*session)(nil)
-
-// Overlay is an Overlay for changed files.
-type Overlay struct {
-	session Session
-	uri     uri.URI
-	data    []byte
-	hash    string
-
-	// saved is true if a file has been saved on disk.
-	saved bool
-
-	// unchanged is true if a file has not yet been edited.
-	unchanged bool
-}
-
-var _ FileHandle = (*Overlay)(nil)
 
 // NewSession returns Session.
 func NewSession() Session {
 	return &session{
-		id:          sessionIndex.Add(1),
-		viewMap:     make(map[uri.URI]View),
-		viewMu:      &sync.RWMutex{},
-		openFiles:   make(map[uri.URI]bool),
-		openFilesMu: &sync.RWMutex{},
+		id:      sessionIndex.Add(1),
+		viewMap: make(map[uri.URI]View),
+		viewMu:  &sync.RWMutex{},
 	}
-}
-
-func (s *session) GetFile(uri uri.URI) FileHandle {
-	s.overlayMu.RLock()
-	overlay, ok := s.getOverlay(uri)
-	s.overlayMu.RUnlock()
-	if ok {
-		return overlay
-	}
-	return nil
 }
 
 func (s *session) AddView(ctx context.Context, view View) {
@@ -166,11 +114,19 @@ func (s *session) View(name string) (View, bool) {
 	return nil, false
 }
 
-func (s *session) ViewOf(uri uri.URI) (v View, ok bool) {
+func (s *session) ViewOf(uri uri.URI) View {
 	s.viewMu.RLock()
-	v, ok = s.viewMap[uri]
+	// uri is folder and matches one of viewMap.
+	v, ok := s.viewMap[uri]
+	if ok {
+		return v
+	}
 	s.viewMu.RUnlock()
-	return v, ok
+
+	v = s.bestView(uri)
+	s.viewMap[uri] = v
+
+	return v
 }
 
 func (s *session) Views() []View {
@@ -185,7 +141,7 @@ func (s *session) Views() []View {
 	return views
 }
 
-func (s *session) Shutdown(ctx context.Context) {
+func (s *session) Shutdown(context.Context) {
 	s.viewMu.Lock()
 	defer s.viewMu.Unlock()
 
@@ -193,86 +149,24 @@ func (s *session) Shutdown(ctx context.Context) {
 	s.viewMap = nil
 }
 
-func (s *session) DidOpen(ctx context.Context, uri uri.URI, text []byte) {
-	s.openFilesMu.Lock()
-	s.openFiles[uri] = true
-	s.openFilesMu.Unlock()
-	s.openOverlay(ctx, uri, text)
-}
-
-func (s *session) DidSave(uri uri.URI) {
-	s.overlayMu.Lock()
-	if overlay, ok := s.overlays[uri]; ok {
-		overlay.saved = true
+// bestView finds the best view to associate a given URI with.
+// viewMu must be held when calling this method.
+func (s *session) bestView(uri uri.URI) View {
+	// we need to find the best view for this file
+	var longest View
+	for _, view := range s.views {
+		if longest != nil && len(longest.Folder()) > len(view.Folder()) {
+			continue
+		}
+		if strings.HasPrefix(string(uri), string(view.Folder())) {
+			longest = view
+		}
 	}
-	s.overlayMu.Unlock()
-}
-
-func (s *session) DidClose(uri uri.URI) {
-	s.openFilesMu.Lock()
-	delete(s.openFiles, uri)
-	s.openFilesMu.Unlock()
-}
-
-func (s *session) IsOpen(uri uri.URI) bool {
-	s.openFilesMu.RLock()
-	defer s.openFilesMu.RUnlock()
-
-	open, ok := s.openFiles[uri]
-	if !ok {
-		return false
+	if longest != nil {
+		return longest
 	}
-	return open
-}
-
-func (s *session) SetOverlay(uri uri.URI, data []byte) (isFirstChange bool) {
-	s.overlayMu.Lock()
-	defer s.overlayMu.Unlock()
-
-	if data == nil {
-		delete(s.overlays, uri)
-		return
-	}
-
-	o := s.overlays[uri]
-
-	s.overlays[uri] = &Overlay{
-		session:   s,
-		uri:       uri,
-		data:      data,
-		hash:      hashContent(data),
-		unchanged: o == nil,
-	}
-
-	isFirstChange = o != nil && o.unchanged
-	return
-}
-
-func (s *session) getOverlay(uri uri.URI) (overlay *Overlay, ok bool) {
-	s.overlayMu.RLock()
-	overlay, ok = s.overlays[uri]
-	s.overlayMu.RUnlock()
-	return
-}
-
-func (s *session) openOverlay(_ context.Context, uri uri.URI, data []byte) {
-	s.overlayMu.Lock()
-	s.overlays[uri] = &Overlay{
-		session:   s,
-		uri:       uri,
-		data:      data,
-		hash:      hashContent(data),
-		unchanged: true,
-	}
-	s.overlayMu.Unlock()
-}
-
-func (o *Overlay) FileSystem() FileSystem {
-	return o.session
-}
-
-func (o *Overlay) Read(context.Context) ([]byte, string, error) {
-	return o.data, o.hash, nil
+	// TODO: are there any more heuristics we can use?
+	return s.views[0]
 }
 
 func hashContent(content []byte) string {

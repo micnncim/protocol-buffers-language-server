@@ -21,6 +21,12 @@ import (
 
 const envPrefix = "PROTOBUF_LSP"
 
+var (
+	DefaultLSPConfig = LSP{
+		TextDocumentSyncKind: protocol.Full,
+	}
+)
+
 // Config represents a configuration for server.
 type Config struct {
 	Env    Env

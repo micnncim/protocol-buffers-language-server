@@ -28,8 +28,10 @@ import (
 )
 
 // View represents a single workspace.
-// This is the level at which we maintain configuration like working directory.
+// Views are managed by a session. A view accesses files.
 type View interface {
+	FileSystem
+
 	// Session returns the session that created this view.
 	Session() Session
 
@@ -39,17 +41,26 @@ type View interface {
 	// Folder returns the root folder for this view.
 	Folder() uri.URI
 
-	// GetFile returns the file object for a given uri.
-	GetFile(uri uri.URI) (File, error)
-
 	// Called to set the effective contents of a file from this view.
-	SetContent(ctx context.Context, uri uri.URI, content []byte) (wasFirstChange bool, err error)
+	SetContent(ctx context.Context, uri uri.URI, content []byte)
 
 	// Ignore returns true if this file should be ignored by this view.
 	Ignore(uri.URI) bool
 
 	// Shutdown closes this view, and detaches it from it's session.
 	Shutdown(ctx context.Context) error
+
+	// DidOpen is invoked each time a file is opened in the editor.
+	DidOpen(uri uri.URI, text []byte)
+
+	// DidSave is invoked each time an open file is saved in the editor.
+	DidSave(uri uri.URI)
+
+	// DidClose is invoked each time an open file is closed in the editor.
+	DidClose(uri uri.URI)
+
+	// IsOpen can be called to check if the editor has a file currently open.
+	IsOpen(uri uri.URI) bool
 }
 
 type view struct {
@@ -66,10 +77,14 @@ type view struct {
 	// to multiple uris, and the same basename may map to multiple files
 	filesByURI  map[uri.URI]File
 	filesByBase map[string][]File
+	fileMu      *sync.RWMutex
+
+	openFiles  map[uri.URI]bool
+	openFileMu *sync.RWMutex
 
 	// ignoredURIs is the set of URIs of files that we ignore.
-	ignoredURIsMu *sync.RWMutex
-	ignoredURIs   map[uri.URI]struct{}
+	ignoredURIs  map[uri.URI]struct{}
+	ignoredURIMu *sync.RWMutex
 
 	mu *sync.RWMutex
 }
@@ -78,15 +93,17 @@ var _ View = (*view)(nil)
 
 func NewView(session Session, name string, folder uri.URI) View {
 	return &view{
-		id:            viewIndex.Add(1),
-		session:       session,
-		name:          name,
-		folder:        folder,
-		filesByURI:    make(map[uri.URI]File),
-		filesByBase:   make(map[string][]File),
-		ignoredURIsMu: nil,
-		ignoredURIs:   nil,
-		mu:            &sync.RWMutex{},
+		id:           viewIndex.Add(1),
+		session:      session,
+		name:         name,
+		folder:       folder,
+		filesByURI:   make(map[uri.URI]File),
+		filesByBase:  make(map[string][]File),
+		openFiles:    make(map[uri.URI]bool),
+		openFileMu:   &sync.RWMutex{},
+		ignoredURIMu: nil,
+		ignoredURIs:  nil,
+		mu:           &sync.RWMutex{},
 	}
 }
 
@@ -112,9 +129,10 @@ func (v *view) GetFile(uri uri.URI) (File, error) {
 	}
 
 	file := &protoFile{
-		fileBase: fileBase{
-			uri:  uri,
-			view: v,
+		file: file{
+			session: v.Session(),
+			view:    v,
+			uri:     uri,
 		},
 	}
 	v.mapFile(uri, file)
@@ -122,26 +140,87 @@ func (v *view) GetFile(uri uri.URI) (File, error) {
 	return file, nil
 }
 
-// SetContent sets the Overlay contents for a file.
-func (v *view) SetContent(ctx context.Context, uri uri.URI, content []byte) (bool, error) {
-	v.mu.Lock()
-	defer v.mu.Unlock()
-
+// SetContent sets the file contents for a file.
+func (v *view) SetContent(ctx context.Context, uri uri.URI, content []byte) {
 	if !v.Ignore(uri) {
-		return v.session.SetOverlay(uri, content), nil
+		return
 	}
-	return false, nil
+
+	v.fileMu.Lock()
+	defer v.fileMu.Unlock()
+
+	if content == nil {
+		delete(v.filesByURI, uri)
+		return
+	}
+
+	v.filesByURI[uri] = &file{
+		session: v.Session(),
+		uri:     uri,
+		data:    content,
+		hash:    hashContent(content),
+	}
 }
 
 func (v *view) Ignore(uri uri.URI) (ok bool) {
-	v.ignoredURIsMu.Lock()
+	v.ignoredURIMu.Lock()
 	_, ok = v.ignoredURIs[uri]
-	v.ignoredURIsMu.Unlock()
+	v.ignoredURIMu.Unlock()
 	return
 }
 
 func (v *view) Shutdown(ctx context.Context) error {
 	return v.session.RemoveView(ctx, v)
+}
+
+func (v *view) DidOpen(uri uri.URI, text []byte) {
+	v.openFileMu.Lock()
+	v.openFiles[uri] = true
+	v.openFileMu.Unlock()
+	v.openFile(uri, text)
+}
+
+func (v *view) DidSave(uri uri.URI) {
+	v.fileMu.Lock()
+	if file, ok := v.filesByURI[uri]; ok {
+		file.SetSaved(true)
+	}
+	v.fileMu.Unlock()
+}
+
+func (v *view) DidClose(uri uri.URI) {
+	v.openFileMu.Lock()
+	delete(v.openFiles, uri)
+	v.openFileMu.Unlock()
+}
+
+func (v *view) IsOpen(uri uri.URI) bool {
+	v.openFileMu.RLock()
+	defer v.openFileMu.RUnlock()
+
+	open, ok := v.openFiles[uri]
+	if !ok {
+		return false
+	}
+	return open
+}
+
+func (v *view) getFile(uri uri.URI) (file File, ok bool) {
+	v.fileMu.RLock()
+	file, ok = v.filesByURI[uri]
+	v.fileMu.RUnlock()
+	return
+}
+
+func (v *view) openFile(uri uri.URI, data []byte) {
+	v.fileMu.Lock()
+	v.filesByURI[uri] = &file{
+		view: v,
+		uri:  uri,
+		data: data,
+		hash: hashContent(data),
+	}
+	v.fileMu.Unlock()
 }
 
 func (v *view) findFile(uri uri.URI) (File, error) {

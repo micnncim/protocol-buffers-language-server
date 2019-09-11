@@ -28,7 +28,7 @@ import (
 	"github.com/go-language-server/protocol"
 	"github.com/go-language-server/uri"
 
-	"github.com/micnncim/protocol-buffers-language-server/pkg/lsp/source"
+	"github.com/micnncim/protocol-buffers-language-server/pkg/config"
 )
 
 func (s *Server) initialize(ctx context.Context, params *protocol.InitializeParams) (result *protocol.InitializeResult, err error) {
@@ -59,14 +59,18 @@ func (s *Server) initialize(ctx context.Context, params *protocol.InitializePara
 	}
 
 	for _, folder := range folders {
-		view := source.NewView(s.session, folder.Name, uri.File(folder.URI))
-		s.session.AddView(ctx, view)
+		s.addView(ctx, folder.Name, uri.File(folder.URI))
 	}
+
+	cfg := config.DefaultLSPConfig
 
 	result = &protocol.InitializeResult{
 		Capabilities: protocol.ServerCapabilities{
-			TextDocumentSync: nil,
-			HoverProvider:    false,
+			TextDocumentSync: protocol.TextDocumentSyncOptions{
+				OpenClose: true,
+				Change:    float64(cfg.TextDocumentSyncKind),
+			},
+			HoverProvider: false,
 			CompletionProvider: &protocol.CompletionOptions{
 				TriggerCharacters: []string{"."},
 			},
