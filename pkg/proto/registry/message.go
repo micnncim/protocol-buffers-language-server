@@ -24,8 +24,14 @@ import (
 type Message interface {
 	Protobuf() *protobuf.Message
 
-	GetNestedEnumByName(name string) (Enum, bool)
+	NestedMessages() []Message
+	NestedEnums() []Enum
+	Fields() []*MessageField
+	Oneofs() []Oneof
+	MapFields() []*MapField
+
 	GetNestedMessageByName(name string) (Message, bool)
+	GetNestedEnumByName(name string) (Enum, bool)
 
 	GetFieldByName(name string) (*MessageField, bool)
 	GetOneofFieldByName(name string) (Oneof, bool)
@@ -40,6 +46,12 @@ type message struct {
 	protoMessage *protobuf.Message
 
 	fullyQualifiedName string
+
+	nestedMessages []Message
+	nestedEnums    []Enum
+	fields         []*MessageField
+	oneofs         []Oneof
+	mapFields      []*MapField
 
 	nestedEnumNameToEnum       map[string]Enum
 	nestedMessageNameToMessage map[string]Message
@@ -74,6 +86,8 @@ func NewMessage(protoMessage *protobuf.Message) Message {
 		lineToField:      make(map[int]*MessageField),
 		lineToOneofField: make(map[int]Oneof),
 		lineToMapField:   make(map[int]*MapField),
+
+		mu: &sync.RWMutex{},
 	}
 
 	for _, e := range protoMessage.Elements {
@@ -81,24 +95,33 @@ func NewMessage(protoMessage *protobuf.Message) Message {
 
 		case *protobuf.NormalField:
 			f := NewMessageField(v)
-
-			m.fieldNameToField[v.Name] = f
-			m.lineToField[v.Position.Line] = f
+			m.fields = append(m.fields, f)
 
 		case *protobuf.Oneof:
 			f := NewOneof(v)
-
-			m.oneofFieldNameToOneofField[v.Name] = f
-			m.lineToOneofField[v.Position.Line] = f
+			m.oneofs = append(m.oneofs, f)
 
 		case *protobuf.MapField:
 			f := NewMapField(v)
-
-			m.mapFieldNameToMapField[v.Name] = f
-			m.lineToMapField[v.Position.Line] = f
+			m.mapFields = append(m.mapFields, f)
 
 		default:
 		}
+	}
+
+	for _, f := range m.fields {
+		m.fieldNameToField[f.ProtoField.Name] = f
+		m.lineToField[f.ProtoField.Position.Line] = f
+	}
+
+	for _, f := range m.oneofs {
+		m.oneofFieldNameToOneofField[f.Protobuf().Name] = f
+		m.lineToOneofField[f.Protobuf().Position.Line] = f
+	}
+
+	for _, f := range m.mapFields {
+		m.mapFieldNameToMapField[f.ProtoMapField.Name] = f
+		m.lineToMapField[f.ProtoMapField.Position.Line] = f
 	}
 
 	return m
@@ -109,11 +132,42 @@ func (m *message) Protobuf() *protobuf.Message {
 	return m.protoMessage
 }
 
-// GetNestedEnumByName gets enum by provided name.
-// This ensures thread safety.
-func (m *message) GetNestedEnumByName(name string) (e Enum, ok bool) {
+// NestedMessages returns slice of nested Message.
+func (m *message) NestedMessages() (msgs []Message) {
 	m.mu.RLock()
-	e, ok = m.nestedEnumNameToEnum[name]
+	msgs = m.nestedMessages
+	m.mu.RUnlock()
+	return
+}
+
+// NestedEnums returns slice of nested Enum.
+func (m *message) NestedEnums() (enums []Enum) {
+	m.mu.RLock()
+	enums = m.nestedEnums
+	m.mu.RUnlock()
+	return
+}
+
+// Fields returns slice of MessageField.
+func (m *message) Fields() (fs []*MessageField) {
+	m.mu.RLock()
+	fs = m.fields
+	m.mu.RUnlock()
+	return
+}
+
+// Oneofs returns slice of Oneof.
+func (m *message) Oneofs() (fs []Oneof) {
+	m.mu.RLock()
+	fs = m.oneofs
+	m.mu.RUnlock()
+	return
+}
+
+// MapFields returns slice of MapField.
+func (m *message) MapFields() (fs []*MapField) {
+	m.mu.RLock()
+	fs = m.mapFields
 	m.mu.RUnlock()
 	return
 }
@@ -123,6 +177,15 @@ func (m *message) GetNestedEnumByName(name string) (e Enum, ok bool) {
 func (m *message) GetNestedMessageByName(name string) (msg Message, ok bool) {
 	m.mu.RLock()
 	msg, ok = m.nestedMessageNameToMessage[name]
+	m.mu.RUnlock()
+	return
+}
+
+// GetNestedEnumByName gets enum by provided name.
+// This ensures thread safety.
+func (m *message) GetNestedEnumByName(name string) (e Enum, ok bool) {
+	m.mu.RLock()
+	e, ok = m.nestedEnumNameToEnum[name]
 	m.mu.RUnlock()
 	return
 }

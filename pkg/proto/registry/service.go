@@ -24,6 +24,8 @@ import (
 type Service interface {
 	Protobuf() *protobuf.Service
 
+	RPCs() []*RPC
+
 	GetRPCByName(bool string) (*RPC, bool)
 
 	GetRPCByLine(line int) (*RPC, bool)
@@ -31,6 +33,8 @@ type Service interface {
 
 type service struct {
 	protoService *protobuf.Service
+
+	rpcs []*RPC
 
 	rpcNameToRPC map[string]*RPC
 
@@ -49,6 +53,8 @@ func NewService(protoService *protobuf.Service) Service {
 		rpcNameToRPC: make(map[string]*RPC),
 
 		lineToRPC: make(map[int]*RPC),
+
+		mu: &sync.RWMutex{},
 	}
 
 	for _, e := range protoService.Elements {
@@ -57,8 +63,12 @@ func NewService(protoService *protobuf.Service) Service {
 			continue
 		}
 		r := NewRPC(v)
-		s.rpcNameToRPC[v.Name] = r
-		s.lineToRPC[v.Position.Line] = r
+		s.rpcs = append(s.rpcs, r)
+	}
+
+	for _, r := range s.rpcs {
+		s.rpcNameToRPC[r.ProtoRPC.Name] = r
+		s.lineToRPC[r.ProtoRPC.Position.Line] = r
 	}
 
 	return s
@@ -67,6 +77,14 @@ func NewService(protoService *protobuf.Service) Service {
 // Protobuf returns *protobuf.Service.
 func (s *service) Protobuf() *protobuf.Service {
 	return s.protoService
+}
+
+// RPCs returns slice of RPC.
+func (s *service) RPCs() (rpcs []*RPC) {
+	s.mu.RLock()
+	rpcs = s.rpcs
+	s.mu.RUnlock()
+	return
 }
 
 // GetRPCByName gets RPC by provided name.
