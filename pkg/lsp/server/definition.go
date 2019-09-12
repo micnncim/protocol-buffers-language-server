@@ -29,6 +29,8 @@ import (
 func (s *Server) definition(ctx context.Context, params *protocol.TextDocumentPositionParams) (result []protocol.Location, err error) {
 	logger := logging.FromContext(ctx)
 	logger = logger.With(zap.Any("params", params))
+	logger.Debug("start definition")
+	defer logger.Debug("end definition")
 
 	uri := params.TextDocument.URI
 	filename := uri.Filename()

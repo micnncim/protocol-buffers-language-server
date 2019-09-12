@@ -27,11 +27,18 @@ import (
 	"github.com/go-language-server/jsonrpc2"
 	"github.com/go-language-server/protocol"
 	"github.com/go-language-server/uri"
+	"go.uber.org/zap"
 
 	"github.com/micnncim/protocol-buffers-language-server/pkg/config"
+	"github.com/micnncim/protocol-buffers-language-server/pkg/logging"
 )
 
 func (s *Server) initialize(ctx context.Context, params *protocol.InitializeParams) (result *protocol.InitializeResult, err error) {
+	logger := logging.FromContext(ctx)
+	logger = logger.With(zap.Any("params", params))
+	logger.Debug("start initialize")
+	defer logger.Debug("end initialize")
+
 	s.stateMu.RLock()
 	state := s.state
 	s.stateMu.RUnlock()
@@ -95,7 +102,12 @@ func (s *Server) initialize(ctx context.Context, params *protocol.InitializePara
 	return
 }
 
-func (s *Server) initialized(context.Context, *protocol.InitializedParams) (err error) {
+func (s *Server) initialized(ctx context.Context, params *protocol.InitializedParams) (err error) {
+	logger := logging.FromContext(ctx)
+	logger = logger.With(zap.Any("params", params))
+	logger.Debug("start initialized")
+	defer logger.Debug("end initialized")
+
 	s.stateMu.Lock()
 	s.state = stateInitialized
 	s.stateMu.Unlock()
@@ -103,6 +115,10 @@ func (s *Server) initialized(context.Context, *protocol.InitializedParams) (err 
 }
 
 func (s *Server) shutdown(ctx context.Context) (err error) {
+	logger := logging.FromContext(ctx)
+	logger.Debug("start shutdown")
+	defer logger.Debug("end shutdown")
+
 	s.stateMu.RLock()
 	state := s.state
 	s.stateMu.RUnlock()
@@ -117,7 +133,11 @@ func (s *Server) shutdown(ctx context.Context) (err error) {
 	return
 }
 
-func (s *Server) exit(context.Context) (err error) {
+func (s *Server) exit(ctx context.Context) (err error) {
+	logger := logging.FromContext(ctx)
+	logger.Debug("start exit")
+	defer logger.Debug("end exit")
+
 	s.stateMu.RLock()
 	defer s.stateMu.RUnlock()
 	if s.state != stateShutdown {
