@@ -52,6 +52,16 @@ func (s *Server) completion(ctx context.Context, params *protocol.CompletionPara
 
 	// Get completions for field within messages.
 
+	// TODO: Check whether the params.TextDocumentPositionParams.Position is valid.
+	// TODO: Sort the items.
+
+	for _, t := range types.BuildInProtoTypes {
+		items = append(items, protocol.CompletionItem{
+			Label:  string(t),
+			Detail: "type",
+		})
+	}
+
 	for _, m := range proto.Messages() {
 		items = append(items, protocol.CompletionItem{
 			Label:  m.Protobuf().Name,
@@ -63,13 +73,6 @@ func (s *Server) completion(ctx context.Context, params *protocol.CompletionPara
 		items = append(items, protocol.CompletionItem{
 			Label:  e.Protobuf().Name,
 			Detail: "enum",
-		})
-	}
-
-	for _, t := range types.BuildInProtoTypes {
-		items = append(items, protocol.CompletionItem{
-			Label:  string(t),
-			Detail: "type",
 		})
 	}
 
