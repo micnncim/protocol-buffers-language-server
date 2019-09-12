@@ -104,16 +104,11 @@ func (s *session) ViewOf(uri uri.URI) View {
 	return v
 }
 
-func (s *session) Views() []View {
+func (s *session) Views() (views []View) {
 	s.viewMu.RLock()
-	defer s.viewMu.RUnlock()
-
-	views := make([]View, 0, len(s.views))
-	for _, view := range s.views {
-		views = append(views, view)
-	}
-
-	return views
+	views = s.views
+	s.viewMu.RUnlock()
+	return
 }
 
 func (s *session) AddView(ctx context.Context, view View) {
