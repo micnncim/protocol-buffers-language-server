@@ -79,6 +79,11 @@ func (p *protoSet) GetProtoByFilename(filename string) (pr Proto, ok bool) {
 type Proto interface {
 	Protobuf() *protobuf.Proto
 
+	Packages() []*Package
+	Messages() []Message
+	Enums() []Enum
+	Services() []Service
+
 	GetPackageByName(name string) (*Package, bool)
 	GetMessageByName(name string) (Message, bool)
 	GetEnumByName(name string) (Enum, bool)
@@ -95,6 +100,11 @@ type Proto interface {
 
 type proto struct {
 	protoProto *protobuf.Proto
+
+	packages []*Package
+	messages []Message
+	enums    []Enum
+	services []Service
 
 	packageNameToPackage map[string]*Package
 	messageNameToMessage map[string]Message
@@ -132,26 +142,29 @@ func NewProto(protoProto *protobuf.Proto) Proto {
 
 		case *protobuf.Package:
 			p := NewPackage(v)
+			proto.packages = append(proto.packages, p)
 			proto.packageNameToPackage[v.Name] = p
 			proto.lineToPackage[v.Position.Line] = p
 
 		case *protobuf.Message:
 			m := NewMessage(v)
+			proto.messages = append(proto.messages, m)
 			proto.messageNameToMessage[v.Name] = m
 			proto.lineToMessage[v.Position.Line] = m
 
 		case *protobuf.Enum:
 			e := NewEnum(v)
+			proto.enums = append(proto.enums, e)
 			proto.enumNameToEnum[v.Name] = e
 			proto.lineToEnum[v.Position.Line] = e
 
 		case *protobuf.Service:
 			s := NewService(v)
+			proto.services = append(proto.services, s)
 			proto.serviceNameToService[v.Name] = s
 			proto.lineToService[v.Position.Line] = s
 
 		default:
-
 		}
 	}
 
@@ -161,6 +174,22 @@ func NewProto(protoProto *protobuf.Proto) Proto {
 // Protobuf returns *protobuf.Proto.
 func (p *proto) Protobuf() *protobuf.Proto {
 	return p.protoProto
+}
+
+func (p *proto) Packages() []*Package {
+	return p.packages
+}
+
+func (p *proto) Messages() []Message {
+	return p.messages
+}
+
+func (p *proto) Enums() []Enum {
+	return p.enums
+}
+
+func (p *proto) Services() []Service {
+	return p.services
 }
 
 // GetPackageByName gets Package by provided name.
