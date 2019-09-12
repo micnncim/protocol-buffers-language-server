@@ -20,12 +20,16 @@ import (
 	"github.com/go-language-server/protocol"
 	"go.uber.org/zap"
 
+	"github.com/micnncim/protocol-buffers-language-server/pkg/logging"
 	"github.com/micnncim/protocol-buffers-language-server/pkg/lsp/source"
 )
 
 // TODO: Match position with line and column.
 // Currently matches with only line.
 func (s *Server) definition(ctx context.Context, params *protocol.TextDocumentPositionParams) (result []protocol.Location, err error) {
+	logger := logging.FromContext(ctx)
+	logger = logger.With(zap.Any("params", params))
+
 	uri := params.TextDocument.URI
 	filename := uri.Filename()
 
