@@ -160,9 +160,10 @@ func (s *Server) ColorPresentation(ctx context.Context, params *protocol.ColorPr
 	return
 }
 
+// Completion implements textDocument/completion method.
+// https://microsoft.github.io/language-server-protocol/specification#textDocument_completion
 func (s *Server) Completion(ctx context.Context, params *protocol.CompletionParams) (result *protocol.CompletionList, err error) {
-	err = notImplemented("Completion")
-	return
+	return s.completion(ctx, params)
 }
 
 func (s *Server) CompletionResolve(ctx context.Context, params *protocol.CompletionItem) (result *protocol.CompletionItem, err error) {
