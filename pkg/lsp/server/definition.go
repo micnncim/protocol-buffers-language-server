@@ -50,7 +50,7 @@ func (s *Server) definition(ctx context.Context, params *protocol.TextDocumentPo
 
 	proto := protoFile.Proto()
 
-	line := int(params.Position.Line)
+	line := int(params.Position.Line) + 1
 	field, ok := proto.GetMessageFieldByLine(line)
 	if !ok {
 		logger.Warn("field not found", zap.Int("line", line))
@@ -72,8 +72,8 @@ func (s *Server) definition(ctx context.Context, params *protocol.TextDocumentPo
 			URI: uri,
 			Range: protocol.Range{
 				Start: protocol.Position{
-					Line:      float64(line),
-					Character: float64(column),
+					Line:      float64(line) - 1,
+					Character: float64(column) - 1,
 				},
 			},
 		},
