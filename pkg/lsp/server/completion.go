@@ -16,6 +16,7 @@ package server
 
 import (
 	"context"
+	"strings"
 
 	"github.com/go-language-server/protocol"
 	"go.uber.org/zap"
@@ -55,11 +56,24 @@ func (s *Server) completion(ctx context.Context, params *protocol.CompletionPara
 	// TODO: Check whether the params.TextDocumentPositionParams.Position is valid.
 	// TODO: Sort the items.
 
-	for _, t := range types.BuildInProtoTypes {
-		items = append(items, protocol.CompletionItem{
-			Label:  string(t),
-			Detail: "type",
-		})
+	// TODO: Remove this and judge whether target is rpc with better performance.
+	buf, _, err := f.Read(ctx)
+	if err != nil {
+		logger.Error("failed to read file", zap.String("filename", filename))
+		return
+	}
+	line := int(params.Position.Line) + 1
+	targetLine := readLine(string(buf), line)
+	// If target is not rpc, add build-in types to completion items.
+	isRPC := strings.HasPrefix(strings.TrimSpace(targetLine), "rpc")
+
+	if !isRPC {
+		for _, t := range types.BuildInProtoTypes {
+			items = append(items, protocol.CompletionItem{
+				Label:  string(t),
+				Detail: "type",
+			})
+		}
 	}
 
 	for _, m := range proto.Messages() {
@@ -69,11 +83,13 @@ func (s *Server) completion(ctx context.Context, params *protocol.CompletionPara
 		})
 	}
 
-	for _, e := range proto.Enums() {
-		items = append(items, protocol.CompletionItem{
-			Label:  e.Protobuf().Name,
-			Detail: "enum",
-		})
+	if !isRPC {
+		for _, e := range proto.Enums() {
+			items = append(items, protocol.CompletionItem{
+				Label:  e.Protobuf().Name,
+				Detail: "enum",
+			})
+		}
 	}
 
 	result = &protocol.CompletionList{
@@ -81,4 +97,12 @@ func (s *Server) completion(ctx context.Context, params *protocol.CompletionPara
 		Items:        items,
 	}
 	return
+}
+
+func readLine(text string, line int) string {
+	if line < 1 {
+		return ""
+	}
+	slugs := strings.Split(text, "\n")
+	return slugs[line-1]
 }
