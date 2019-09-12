@@ -135,6 +135,8 @@ func NewProto(protoProto *protobuf.Proto) Proto {
 		lineToMessage: make(map[int]Message),
 		lineToEnum:    make(map[int]Enum),
 		lineToService: make(map[int]Service),
+
+		mu: &sync.RWMutex{},
 	}
 
 	for _, el := range protoProto.Elements {
@@ -143,29 +145,41 @@ func NewProto(protoProto *protobuf.Proto) Proto {
 		case *protobuf.Package:
 			p := NewPackage(v)
 			proto.packages = append(proto.packages, p)
-			proto.packageNameToPackage[v.Name] = p
-			proto.lineToPackage[v.Position.Line] = p
 
 		case *protobuf.Message:
 			m := NewMessage(v)
 			proto.messages = append(proto.messages, m)
-			proto.messageNameToMessage[v.Name] = m
-			proto.lineToMessage[v.Position.Line] = m
 
 		case *protobuf.Enum:
 			e := NewEnum(v)
 			proto.enums = append(proto.enums, e)
-			proto.enumNameToEnum[v.Name] = e
-			proto.lineToEnum[v.Position.Line] = e
 
 		case *protobuf.Service:
 			s := NewService(v)
 			proto.services = append(proto.services, s)
-			proto.serviceNameToService[v.Name] = s
-			proto.lineToService[v.Position.Line] = s
 
 		default:
 		}
+	}
+
+	for _, p := range proto.packages {
+		proto.packageNameToPackage[p.ProtoPackage.Name] = p
+		proto.lineToPackage[p.ProtoPackage.Position.Line] = p
+	}
+
+	for _, m := range proto.messages {
+		proto.messageNameToMessage[m.Protobuf().Name] = m
+		proto.lineToMessage[m.Protobuf().Position.Line] = m
+	}
+
+	for _, e := range proto.enums {
+		proto.enumNameToEnum[e.Protobuf().Name] = e
+		proto.lineToEnum[e.Protobuf().Position.Line] = e
+	}
+
+	for _, s := range proto.services {
+		proto.serviceNameToService[s.Protobuf().Name] = s
+		proto.lineToService[s.Protobuf().Position.Line] = s
 	}
 
 	return proto
@@ -282,7 +296,7 @@ func (p *proto) GetMessageFieldByLine(line int) (f *MessageField, ok bool) {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
 
-	for _, message := range p.lineToMessage {
+	for _, message := range p.messages {
 		f, ok = message.GetFieldByLine(line)
 		if ok {
 			return
@@ -297,7 +311,7 @@ func (p *proto) GetEnumFieldByLine(line int) (f *EnumField, ok bool) {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
 
-	for _, enum := range p.lineToEnum {
+	for _, enum := range p.enums {
 		f, ok = enum.GetFieldByLine(line)
 		if ok {
 			return
