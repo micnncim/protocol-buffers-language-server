@@ -29,8 +29,6 @@ import (
 func (s *Server) completion(ctx context.Context, params *protocol.CompletionParams) (result *protocol.CompletionList, err error) {
 	logger := logging.FromContext(ctx)
 	logger = logger.With(zap.Any("params", params))
-	logger.Debug("start completion")
-	defer logger.Debug("end completion")
 
 	uri := params.TextDocument.URI
 	filename := uri.Filename()

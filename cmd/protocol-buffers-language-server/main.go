@@ -60,10 +60,6 @@ func main() {
 }
 
 func runServer(ctx context.Context, session source.Session, opts ...server.Option) error {
-	logger := logging.FromContext(ctx)
-	logger.Debug("start runServer")
-	defer logger.Debug("end runServer")
-
 	run := func(ctx context.Context, srv *server.Server) {
 		go srv.Run(ctx)
 	}
