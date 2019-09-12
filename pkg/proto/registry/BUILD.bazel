@@ -19,6 +19,7 @@ go_library(
     srcs = [
         "doc.go",
         "enum.go",
+        "import.go",
         "map.go",
         "message.go",
         "oneof.go",
@@ -36,6 +37,7 @@ go_test(
     size = "small",
     srcs = [
         "enum_test.go",
+        "import_test.go",
         "map_test.go",
         "message_test.go",
         "oneof_test.go",

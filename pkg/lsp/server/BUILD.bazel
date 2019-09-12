@@ -30,6 +30,7 @@ go_library(
         "//pkg/config:go_default_library",
         "//pkg/logging:go_default_library",
         "//pkg/lsp/source:go_default_library",
+        "//pkg/proto/registry:go_default_library",
         "//pkg/proto/types:go_default_library",
         "@com_github_go_language_server_jsonrpc2//:go_default_library",
         "@com_github_go_language_server_protocol//:go_default_library",

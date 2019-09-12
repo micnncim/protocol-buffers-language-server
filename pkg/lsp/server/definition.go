@@ -16,12 +16,14 @@ package server
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/go-language-server/protocol"
 	"go.uber.org/zap"
 
 	"github.com/micnncim/protocol-buffers-language-server/pkg/logging"
 	"github.com/micnncim/protocol-buffers-language-server/pkg/lsp/source"
+	"github.com/micnncim/protocol-buffers-language-server/pkg/proto/registry"
 )
 
 // TODO: Match position with line and column.
@@ -43,10 +45,13 @@ func (s *Server) definition(ctx context.Context, params *protocol.TextDocumentPo
 
 	protoFile, ok := f.(source.ProtoFile)
 	if !ok {
+		logger.Warn("not proto file", zap.String("filename", filename))
 		return
 	}
 
+	var protos []registry.Proto
 	proto := protoFile.Proto()
+	protos = append(protos, proto)
 
 	line := int(params.Position.Line) + 1
 	field, ok := proto.GetMessageFieldByLine(line)
@@ -55,11 +60,37 @@ func (s *Server) definition(ctx context.Context, params *protocol.TextDocumentPo
 		return
 	}
 
-	typ := field.ProtoField.Type
+	imports := proto.Imports()
+
+	for _, imp := range imports {
+		logger.Debug("import", zap.String("import", fmt.Sprintf("%#v", imp.ProtoImport.Filename)))
+
+		files := v.GetFileByRelativePath(imp.ProtoImport.Filename)
+		for _, f := range files {
+			pf, ok := f.(source.ProtoFile)
+			if !ok {
+				logger.Warn("not proto file", zap.String("filename", filename))
+				return
+			}
+			protos = append(protos, pf.Proto())
+		}
+	}
+
 	// TODO: Search the requested proto file and imported proto files.
-	m, ok := proto.GetMessageByName(typ)
-	if !ok {
-		logger.Warn("message not found", zap.String("name", typ))
+
+	logger.Debug("protos", zap.String("protos", fmt.Sprintf("%#v", protos)))
+
+	var m registry.Message
+	var found bool
+	typ := field.ProtoField.Type
+	for _, p := range protos {
+		m, found = p.GetMessageByName(typ)
+		if ok {
+			break
+		}
+	}
+	if !found {
+		logger.Warn("message not found", zap.String("message_name", typ))
 		return
 	}
 

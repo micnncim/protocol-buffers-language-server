@@ -23,6 +23,7 @@ import (
 	"context"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 
 	"github.com/go-language-server/uri"
@@ -65,6 +66,10 @@ type View interface {
 
 	// IsOpen can be called to check if the editor has a file currently open.
 	IsOpen(uri uri.URI) bool
+
+	// GetFileByRelativePath gets File by relative filepath.
+	// e.g.) returns File whose URI `file:///Users/username/proto/echo.proto` by filepath `proto/echo.proto`.
+	GetFileByRelativePath(filepath string) []File
 }
 
 type view struct {
@@ -214,6 +219,21 @@ func (v *view) IsOpen(uri uri.URI) bool {
 		return false
 	}
 	return open
+}
+
+func (v *view) GetFileByRelativePath(filepath string) []File {
+	var files []File
+
+	v.fileMu.RLock()
+	for uri, file := range v.filesByURI {
+		if !strings.HasSuffix(uri.Filename(), filepath) {
+			continue
+		}
+		files = append(files, file)
+	}
+	v.fileMu.RUnlock()
+
+	return files
 }
 
 func (v *view) openFile(uri uri.URI, data []byte) {

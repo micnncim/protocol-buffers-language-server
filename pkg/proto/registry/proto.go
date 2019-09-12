@@ -80,6 +80,7 @@ type Proto interface {
 	Protobuf() *protobuf.Proto
 
 	Packages() []*Package
+	Imports() []*Import
 	Messages() []Message
 	Enums() []Enum
 	Services() []Service
@@ -102,6 +103,7 @@ type proto struct {
 	protoProto *protobuf.Proto
 
 	packages []*Package
+	imports  []*Import
 	messages []Message
 	enums    []Enum
 	services []Service
@@ -145,6 +147,10 @@ func NewProto(protoProto *protobuf.Proto) Proto {
 		case *protobuf.Package:
 			p := NewPackage(v)
 			proto.packages = append(proto.packages, p)
+
+		case *protobuf.Import:
+			i := NewImport(v)
+			proto.imports = append(proto.imports, i)
 
 		case *protobuf.Message:
 			m := NewMessage(v)
@@ -193,6 +199,13 @@ func (p *proto) Protobuf() *protobuf.Proto {
 func (p *proto) Packages() (pkgs []*Package) {
 	p.mu.RLock()
 	pkgs = p.packages
+	p.mu.RUnlock()
+	return
+}
+
+func (p *proto) Imports() (imps []*Import) {
+	p.mu.RLock()
+	imps = p.imports
 	p.mu.RUnlock()
 	return
 }
