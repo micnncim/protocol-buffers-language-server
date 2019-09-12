@@ -176,20 +176,32 @@ func (p *proto) Protobuf() *protobuf.Proto {
 	return p.protoProto
 }
 
-func (p *proto) Packages() []*Package {
-	return p.packages
+func (p *proto) Packages() (pkgs []*Package) {
+	p.mu.RLock()
+	pkgs = p.packages
+	p.mu.RUnlock()
+	return
 }
 
-func (p *proto) Messages() []Message {
-	return p.messages
+func (p *proto) Messages() (msgs []Message) {
+	p.mu.RLock()
+	msgs = p.messages
+	p.mu.RUnlock()
+	return
 }
 
-func (p *proto) Enums() []Enum {
-	return p.enums
+func (p *proto) Enums() (enums []Enum) {
+	p.mu.RLock()
+	enums = p.enums
+	p.mu.RUnlock()
+	return
 }
 
-func (p *proto) Services() []Service {
-	return p.services
+func (p *proto) Services() (svcs []Service) {
+	p.mu.RLock()
+	svcs = p.services
+	p.mu.RUnlock()
+	return
 }
 
 // GetPackageByName gets Package by provided name.
