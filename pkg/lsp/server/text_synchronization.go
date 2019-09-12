@@ -32,8 +32,6 @@ import (
 func (s *Server) didOpen(ctx context.Context, params *protocol.DidOpenTextDocumentParams) error {
 	logger := logging.FromContext(ctx)
 	logger = logger.With(zap.Any("params", params))
-	logger.Debug("start didOpen")
-	defer logger.Debug("end didOpen")
 
 	uri := params.TextDocument.URI
 	text := []byte(params.TextDocument.Text)
