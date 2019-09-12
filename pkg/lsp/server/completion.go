@@ -18,8 +18,64 @@ import (
 	"context"
 
 	"github.com/go-language-server/protocol"
+	"go.uber.org/zap"
+
+	"github.com/micnncim/protocol-buffers-language-server/pkg/logging"
+	"github.com/micnncim/protocol-buffers-language-server/pkg/lsp/source"
+	"github.com/micnncim/protocol-buffers-language-server/pkg/proto/types"
 )
 
 func (s *Server) completion(ctx context.Context, params *protocol.CompletionParams) (result *protocol.CompletionList, err error) {
+	logger := logging.FromContext(ctx)
+	logger = logger.With(zap.Any("params", params))
+	logger.Debug("start completion")
+	defer logger.Debug("end completion")
+
+	uri := params.TextDocument.URI
+	filename := uri.Filename()
+
+	v := s.session.ViewOf(uri)
+
+	f, err := v.GetFile(uri)
+	if err != nil {
+		logger.Error("file not found", zap.String("filename", filename))
+		return
+	}
+
+	protoFile, ok := f.(source.ProtoFile)
+	if !ok {
+		return
+	}
+
+	proto := protoFile.Proto()
+	var items []protocol.CompletionItem
+
+	// Get completions for field within messages.
+
+	for _, m := range proto.Messages() {
+		items = append(items, protocol.CompletionItem{
+			Label:  m.Protobuf().Name,
+			Detail: "message",
+		})
+	}
+
+	for _, e := range proto.Enums() {
+		items = append(items, protocol.CompletionItem{
+			Label:  e.Protobuf().Name,
+			Detail: "enum",
+		})
+	}
+
+	for _, t := range types.BuildInProtoTypes {
+		items = append(items, protocol.CompletionItem{
+			Label:  string(t),
+			Detail: "type",
+		})
+	}
+
+	result = &protocol.CompletionList{
+		IsIncomplete: false,
+		Items:        items,
+	}
 	return
 }
