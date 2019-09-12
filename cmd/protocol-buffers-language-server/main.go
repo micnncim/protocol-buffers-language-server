@@ -21,16 +21,12 @@ import (
 
 	"github.com/alecthomas/kingpin"
 	"github.com/go-language-server/jsonrpc2"
+	"go.uber.org/zap"
 
 	"github.com/micnncim/protocol-buffers-language-server/pkg/config"
 	"github.com/micnncim/protocol-buffers-language-server/pkg/logging"
 	"github.com/micnncim/protocol-buffers-language-server/pkg/lsp/server"
 	"github.com/micnncim/protocol-buffers-language-server/pkg/lsp/source"
-)
-
-var (
-	stdout = os.Stdout
-	stderr = os.Stderr
 )
 
 var cfg config.Config
@@ -47,19 +43,27 @@ func main() {
 
 	logger, err := logging.NewLogger(cfg.Log)
 	if err != nil {
-		exit(err)
+		fmt.Fprint(os.Stderr, err)
+		os.Exit(1)
 	}
+	ctx := context.Background()
+	ctx = logging.WithContext(ctx, logger)
 
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 	session := source.NewSession()
 
 	if err := runServer(ctx, session, server.WithLogger(logger)); err != nil {
-		exit(err)
+		logger.Error("failed to run server", zap.Error(err))
+		os.Exit(1)
 	}
 }
 
 func runServer(ctx context.Context, session source.Session, opts ...server.Option) error {
+	logger := logging.FromContext(ctx)
+	logger.Debug("start runServer")
+	defer logger.Debug("end runServer")
+
 	run := func(ctx context.Context, srv *server.Server) {
 		go srv.Run(ctx)
 	}
@@ -72,16 +76,8 @@ func runServer(ctx context.Context, session source.Session, opts ...server.Optio
 		return server.RunServerOnPort(ctx, session, port, run, opts...)
 	}
 
-	stream := jsonrpc2.NewStream(stdout, stderr)
+	stream := jsonrpc2.NewStream(os.Stdin, os.Stdout)
 	ctx, srv := server.NewServer(ctx, session, stream, opts...)
 
 	return srv.Run(ctx)
-}
-
-func exit(err error) {
-	if err == nil {
-		return
-	}
-	fmt.Fprint(stderr, err)
-	os.Exit(1)
 }
