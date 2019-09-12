@@ -24,9 +24,17 @@ import (
 
 	"github.com/go-language-server/jsonrpc2"
 	"github.com/go-language-server/protocol"
+	"go.uber.org/zap"
+
+	"github.com/micnncim/protocol-buffers-language-server/pkg/logging"
 )
 
 func (s *Server) didOpen(ctx context.Context, params *protocol.DidOpenTextDocumentParams) error {
+	logger := logging.FromContext(ctx)
+	logger = logger.With(zap.Any("params", params))
+	logger.Debug("start didOpen")
+	defer logger.Debug("end didOpen")
+
 	uri := params.TextDocument.URI
 	text := []byte(params.TextDocument.Text)
 
