@@ -96,6 +96,7 @@ type Proto interface {
 
 	GetMessageFieldByLine(line int) (*MessageField, bool)
 	GetEnumFieldByLine(line int) (*EnumField, bool)
+	GetRPCByLine(line int) (*RPC, bool)
 }
 
 type proto struct {
@@ -313,6 +314,21 @@ func (p *proto) GetEnumFieldByLine(line int) (f *EnumField, ok bool) {
 
 	for _, enum := range p.enums {
 		f, ok = enum.GetFieldByLine(line)
+		if ok {
+			return
+		}
+	}
+	return
+}
+
+// GetRPCByLine gets rpc by provided line.
+// This ensures thread safety.
+func (p *proto) GetRPCByLine(line int) (r *RPC, ok bool) {
+	p.mu.RLock()
+	defer p.mu.RUnlock()
+
+	for _, service := range p.services {
+		r, ok = service.GetRPCByLine(line)
 		if ok {
 			return
 		}
