@@ -96,11 +96,3 @@ func (s *Server) completion(ctx context.Context, params *protocol.CompletionPara
 	}
 	return
 }
-
-func readLine(text string, line int) string {
-	if line < 1 {
-		return ""
-	}
-	slugs := strings.Split(text, "\n")
-	return slugs[line-1]
-}
