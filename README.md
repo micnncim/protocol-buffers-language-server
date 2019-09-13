@@ -41,7 +41,7 @@ Protocol Buffers Language Server is released under the [Apache License 2.0](./LI
 
 <!-- badge links -->
 
-[github-actions]: https://github.com/micnncim/protocol-buffers-language-server
+[github-actions]: https://github.com/micnncim/protocol-buffers-language-server/actions
 [license]: LICENSE
 [godoc]: https://godoc.org/github.com/micnncim/protocol-buffers-language-server
 [go-report-card]: https://goreportcard.com/report/github.com/micnncim/protocol-buffers-language-server
