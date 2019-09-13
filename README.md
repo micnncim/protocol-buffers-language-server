@@ -1,7 +1,6 @@
 ![](docs/assets/logo.png)
 
 [![License][license-badge]][license]
-[![CircleCI][circleci-badge]][circleci]
 [![GoDoc][godoc-badge]][godoc]
 [![GolangCI][golangci-badge]][golangci]
 [![Go Report Card][go-report-card-badge]][go-report-card]
@@ -42,7 +41,6 @@ Protocol Buffers Language Server is released under the [Apache License 2.0](./LI
 <!-- badge links -->
 
 [license]: LICENSE
-[circleci]: https://circleci.com/gh/micnncim/workflows/protocol-buffers-language-server
 [godoc]: https://godoc.org/github.com/micnncim/protocol-buffers-language-server
 [go-report-card]: https://goreportcard.com/report/github.com/micnncim/protocol-buffers-language-server
 [golangci]: https://golangci.com/r/github.com/micnncim/protocol-buffers-language-server
@@ -50,7 +48,6 @@ Protocol Buffers Language Server is released under the [Apache License 2.0](./LI
 [deepsource]: https://deepsource.io/gh/micnncim/protocol-buffers-language-server/?ref=repository-badge
 
 [license-badge]: https://img.shields.io/badge/license-Apache%202.0-%23E93424
-[circleci-badge]: https://img.shields.io/circleci/project/github/micnncim/protocol-buffers-language-server.svg?label=circleci&logo=circleci
 [godoc-badge]: https://img.shields.io/badge/godoc.org-reference-blue.svg
 [go-report-card-badge]: https://goreportcard.com/badge/github.com/micnncim/protocol-buffers-language-server
 [golangci-badge]: https://golangci.com/badges/github.com/micnncim/protocol-buffers-language-server.svg
