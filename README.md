@@ -54,11 +54,11 @@ Protocol Buffers Language Server is released under the [Apache License 2.0](./LI
 [deepsource]: https://deepsource.io/gh/micnncim/protocol-buffers-language-server/?ref=repository-badge
 
 [github-actions-badge]: https://github.com/micnncim/protocol-buffers-language-server/workflows/Main%20Workflow/badge.svg
-[go-badge]: https://badgen.net/badge/Go/1.13/blue
+[go-badge]: https://img.shields.io/badge/Go-1.13-blue
 [license-badge]: https://img.shields.io/badge/license-Apache%202.0-%23E93424
 [godoc-badge]: https://img.shields.io/badge/godoc.org-reference-blue.svg
 [go-report-card-badge]: https://goreportcard.com/badge/github.com/micnncim/protocol-buffers-language-server
 [golangci-badge]: https://golangci.com/badges/github.com/micnncim/protocol-buffers-language-server.svg
 [codefactor-badge]: https://www.codefactor.io/repository/github/micnncim/protocol-buffers-language-server/badge
-[dependabot-badge]: https://badgen.net/dependabot/dependabot/dependabot-core/?icon=dependabot
+[dependabot-badge]: https://badgen.net/badge/icon/Dependabot?icon=dependabot&label&color=blue
 [deepsource-badge]: https://static.deepsource.io/deepsource-badge-light.svg
