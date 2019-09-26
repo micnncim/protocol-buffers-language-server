@@ -16,7 +16,7 @@
 dep: bin/bazelisk
 	go mod tidy
 	bin/bazelisk run //:gazelle
-	bin/bazelisk run //:gazelle -- update-repos -from_file=go.mod -to_macro=bazel/deps.bzl%go_repositories
+	bin/bazelisk run //:gazelle -- update-repos -from_file=go.mod -to_macro=build/bazel/deps.bzl%go_repositories
 
 .PHONY: run
 run: bin/bazelisk

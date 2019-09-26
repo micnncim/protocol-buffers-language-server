@@ -30,7 +30,7 @@ go_library(
     ],
 )
 
-load("//bazel:gomock.bzl", "gomock")
+load("//build/bazel:gomock.bzl", "gomock")
 
 gomock(
     name = "mock_source",
