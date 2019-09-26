@@ -80,10 +80,10 @@ load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
 
 protobuf_deps()
 
-# gazelle:repository_macro bazel/deps.bzl%go_repositories
+# gazelle:repository_macro build/bazel/deps.bzl%go_repositories
 
 ## Load dependencies
 
-load("//bazel:deps.bzl", "go_repositories")
+load("//build/bazel:deps.bzl", "go_repositories")
 
 go_repositories()
