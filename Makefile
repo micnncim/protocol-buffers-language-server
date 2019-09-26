@@ -42,6 +42,10 @@ clean: bin/bazelisk
 coverage:
 	go test -v -race -covermode=atomic -coverpkg=./... -coverprofile=coverage.txt ./...
 
+.PHONY: expose-generated-go
+ expose-generated-go:
+	./hack/expose-generated-go.sh micnncim protocol-buffers-language-server
+
 bin/bazelisk:
 	@mkdir -p bin
 	go build -o bin/bazelisk github.com/bazelbuild/bazelisk
