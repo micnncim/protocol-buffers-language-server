@@ -49,9 +49,8 @@ func (s *Server) definition(ctx context.Context, params *protocol.TextDocumentPo
 		return
 	}
 
-	var protos []registry.Proto
 	proto := protoFile.Proto()
-	protos = append(protos, proto)
+	protos := []registry.Proto{proto}
 
 	line := int(params.Position.Line) + 1
 	field, ok := proto.GetMessageFieldByLine(line)
@@ -78,8 +77,6 @@ func (s *Server) definition(ctx context.Context, params *protocol.TextDocumentPo
 		protos = append(protos, pf.Proto())
 	}
 
-	// TODO: Search the requested proto file and imported proto files.
-
 	logger.Debug("protos", zap.String("protos", fmt.Sprintf("%#v", protos)))
 
 	var m registry.Message
@@ -91,7 +88,7 @@ func (s *Server) definition(ctx context.Context, params *protocol.TextDocumentPo
 			break
 		}
 	}
-	if !found {
+	if m == nil || !found {
 		logger.Warn("message not found", zap.String("message_name", typ))
 		return
 	}
