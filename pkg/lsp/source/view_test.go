@@ -15,6 +15,7 @@
 package source
 
 import (
+	"context"
 	"path/filepath"
 	"sync"
 	"testing"
@@ -23,7 +24,6 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/micnncim/protocol-buffers-language-server/pkg/internal/testutil"
-	"github.com/micnncim/protocol-buffers-language-server/pkg/proto/registry"
 )
 
 func TestFindFileByRelativePath(t *testing.T) {
@@ -57,16 +57,17 @@ func TestFindFileByRelativePath(t *testing.T) {
 			name:       "not found from view but newly open the file",
 			filesByURI: make(map[uri.URI]File),
 			path:       "testdata/test.proto",
-			want: &protoFile{
-				File: &file{
-					session: &session{},
-					uri:     uri.File(filepath.Join(wd, "testdata/test.proto")),
-				},
-				proto: func() registry.Proto {
-					buf := testutil.ReadFile(t, "testdata/test.proto")
-					return parseProto(buf)
-				}(),
-			},
+			want: func() ProtoFile {
+				data := testutil.ReadFile(t, "testdata/test.proto")
+				return &protoFile{
+					File: &file{
+						session: &session{},
+						uri:     uri.File(filepath.Join(wd, "testdata/test.proto")),
+						data:    data,
+					},
+					proto: parseProto(data),
+				}
+			}(),
 			wantErr: false,
 		},
 	}
@@ -86,8 +87,21 @@ func TestFindFileByRelativePath(t *testing.T) {
 			}
 
 			got, err := v.FindFileByRelativePath(tc.path)
-			assert.Equal(t, tc.want, got)
+
 			assert.Equal(t, tc.wantErr, err != nil)
+
+			ctx := context.Background()
+			wantData, _, err := tc.want.Read(ctx)
+			if err != nil {
+				t.Fatal(err)
+			}
+			gotData, _, err := got.Read(ctx)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			assert.Equal(t, wantData, gotData)
+			assert.Equal(t, tc.want.URI(), got.URI())
 		})
 	}
 }
