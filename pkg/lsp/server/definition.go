@@ -65,15 +65,15 @@ func (s *Server) definition(ctx context.Context, params *protocol.TextDocumentPo
 	for _, imp := range imports {
 		logger.Debug("import", zap.String("import", fmt.Sprintf("%#v", imp.ProtoImport.Filename)))
 
-		files := v.GetFileByRelativePath(imp.ProtoImport.Filename)
-		for _, f := range files {
-			pf, ok := f.(source.ProtoFile)
-			if !ok {
-				logger.Warn("not proto file", zap.String("filename", filename))
-				return
-			}
-			protos = append(protos, pf.Proto())
+		f, err := v.FindFileByRelativePath(imp.ProtoImport.Filename)
+		if err != nil {
+			logger.Warn("failed to find file by import path", zap.Error(err))
 		}
+		pf, ok := f.(source.ProtoFile)
+		if !ok {
+			logger.Warn("not proto file", zap.String("filename", filename))
+		}
+		protos = append(protos, pf.Proto())
 	}
 
 	// TODO: Search the requested proto file and imported proto files.

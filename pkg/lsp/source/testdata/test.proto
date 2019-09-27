@@ -1,0 +1,8 @@
+syntax = "proto3";
+
+package test;
+
+message Message {
+    string id = 1;
+    string body = 2;
+}

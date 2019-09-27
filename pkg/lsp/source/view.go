@@ -21,9 +21,9 @@ package source
 import (
 	"bytes"
 	"context"
+	"io/ioutil"
 	"os"
 	"path/filepath"
-	"strings"
 	"sync"
 
 	"github.com/go-language-server/uri"
@@ -67,9 +67,9 @@ type View interface {
 	// IsOpen can be called to check if the editor has a file currently open.
 	IsOpen(uri uri.URI) bool
 
-	// GetFileByRelativePath gets File by relative filepath.
+	// FindFileByRelativePath gets File by relative filepath.
 	// e.g.) returns File whose URI `file:///Users/username/proto/echo.proto` by filepath `proto/echo.proto`.
-	GetFileByRelativePath(filepath string) []File
+	FindFileByRelativePath(filepath string) (File, error)
 }
 
 type view struct {
@@ -221,37 +221,59 @@ func (v *view) IsOpen(uri uri.URI) bool {
 	return open
 }
 
-func (v *view) GetFileByRelativePath(filepath string) []File {
-	var files []File
+func (v *view) FindFileByRelativePath(path string) (File, error) {
+	fp := filepath.Join(v.Folder().Filename(), path)
+	u := uri.File(fp)
 
 	v.fileMu.RLock()
-	for uri, file := range v.filesByURI {
-		if !strings.HasSuffix(uri.Filename(), filepath) {
-			continue
-		}
-		files = append(files, file)
+	f, ok := v.filesByURI[u]
+	v.fileMu.RUnlock()
+	if ok {
+		return f, nil
 	}
+
+	// if view has not opened the file yet, view opens and returns the file.
+	if err := v.openFileByFilepath(path); err != nil {
+		return nil, err
+	}
+	v.fileMu.RLock()
+	f = v.filesByURI[u]
 	v.fileMu.RUnlock()
 
-	return files
+	return f, nil
 }
 
 func (v *view) openFile(uri uri.URI, data []byte) {
-	v.fileMu.Lock()
-
 	pf := &protoFile{
 		File: &file{
-			view: v,
-			uri:  uri,
-			data: data,
-			hash: hashContent(data),
+			session: v.Session(),
+			view:    v,
+			uri:     uri,
+			data:    data,
+			hash:    hashContent(data),
 		},
 	}
 
 	pf.proto = parseProto(data)
-	v.filesByURI[uri] = pf
 
+	v.fileMu.Lock()
+	v.filesByURI[uri] = pf
 	v.fileMu.Unlock()
+
+	v.openFileMu.Lock()
+	v.openFiles[uri] = true
+	v.openFileMu.Unlock()
+}
+
+func (v *view) openFileByFilepath(path string) error {
+	data, err := ioutil.ReadFile(path)
+	if err != nil {
+		return err
+	}
+
+	v.openFile(uri.File(path), data)
+
+	return nil
 }
 
 func (v *view) findFile(uri uri.URI) (File, error) {

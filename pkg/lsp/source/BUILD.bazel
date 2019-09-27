@@ -22,6 +22,7 @@ go_library(
         "session.go",
         "view.go",
     ],
+    data = glob(["testdata/**"]),
     importpath = "github.com/micnncim/protocol-buffers-language-server/pkg/lsp/source",
     visibility = ["//visibility:public"],
     deps = [
@@ -40,4 +41,10 @@ go_test(
         "view_test.go",
     ],
     embed = [":go_default_library"],
+    deps = [
+        "//pkg/internal/testutil:go_default_library",
+        "//pkg/proto/registry:go_default_library",
+        "@com_github_go_language_server_uri//:go_default_library",
+        "@com_github_stretchr_testify//assert:go_default_library",
+    ],
 )
