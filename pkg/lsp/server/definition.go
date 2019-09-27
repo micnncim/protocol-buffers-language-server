@@ -68,10 +68,12 @@ func (s *Server) definition(ctx context.Context, params *protocol.TextDocumentPo
 		f, err := v.FindFileByRelativePath(imp.ProtoImport.Filename)
 		if err != nil {
 			logger.Warn("failed to find file by import path", zap.Error(err))
+			continue
 		}
 		pf, ok := f.(source.ProtoFile)
 		if !ok {
 			logger.Warn("not proto file", zap.String("filename", filename))
+			continue
 		}
 		protos = append(protos, pf.Proto())
 	}
@@ -85,7 +87,7 @@ func (s *Server) definition(ctx context.Context, params *protocol.TextDocumentPo
 	typ := field.ProtoField.Type
 	for _, p := range protos {
 		m, found = p.GetMessageByName(typ)
-		if ok {
+		if found {
 			break
 		}
 	}
