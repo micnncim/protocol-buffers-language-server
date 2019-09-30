@@ -21,6 +21,8 @@ import (
 )
 
 func Getwd(t *testing.T) string {
+	t.Helper()
+
 	wd, err := os.Getwd()
 	if err != nil {
 		t.Fatal(err)
@@ -29,6 +31,8 @@ func Getwd(t *testing.T) string {
 }
 
 func ReadFile(t *testing.T, filename string) []byte {
+	t.Helper()
+
 	buf, err := ioutil.ReadFile(filename)
 	if err != nil {
 		t.Fatal(err)

@@ -17,6 +17,12 @@ load("@bazel_gazelle//:def.bzl", "gazelle")
 # gazelle:prefix github.com/micnncim/protocol-buffers-language-server
 gazelle(name = "gazelle")
 
+# gazelle:exclude docs
+# gazelle:exclude hack
+# gazelle:build_file_name BUILD.bazel
+
+# gazelle:exclude pkg/lsp/source/testdata
+
 load("@com_github_bazelbuild_buildtools//buildifier:def.bzl", "buildifier")
 
 buildifier(
