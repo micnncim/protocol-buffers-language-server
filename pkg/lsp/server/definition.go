@@ -93,7 +93,8 @@ func (s *Server) definition(ctx context.Context, params *protocol.TextDocumentPo
 		return
 	}
 
-	line, column := m.Protobuf().Position.Line, m.Protobuf().Position.Column
+	p := m.Protobuf()
+	line, column := p.Position.Line, p.Position.Column
 
 	result = []protocol.Location{
 		{
