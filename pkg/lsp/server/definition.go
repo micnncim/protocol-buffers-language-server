@@ -17,8 +17,10 @@ package server
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/go-language-server/protocol"
+	"github.com/go-language-server/uri"
 	"go.uber.org/zap"
 
 	"github.com/micnncim/protocol-buffers-language-server/pkg/logging"
@@ -33,24 +35,26 @@ func (s *Server) definition(ctx context.Context, params *protocol.TextDocumentPo
 	logger = logger.With(zap.Any("params", params))
 
 	uri := params.TextDocument.URI
-	filename := uri.Filename()
 
 	v := s.session.ViewOf(uri)
 
 	f, err := v.GetFile(uri)
 	if err != nil {
-		logger.Error("file not found", zap.String("filename", filename))
+		logger.Error("file not found")
 		return
 	}
 
 	protoFile, ok := f.(source.ProtoFile)
 	if !ok {
-		logger.Warn("not proto file", zap.String("filename", filename))
+		logger.Warn("not proto file")
 		return
 	}
 
 	proto := protoFile.Proto()
-	protos := []registry.Proto{proto}
+	if len(proto.Packages()) == 0 {
+		logger.Error("proto has no package")
+		return
+	}
 
 	line := int(params.Position.Line) + 1
 	field, ok := proto.GetMessageFieldByLine(line)
@@ -58,12 +62,28 @@ func (s *Server) definition(ctx context.Context, params *protocol.TextDocumentPo
 		logger.Warn("field not found", zap.Int("line", line))
 		return
 	}
+	typ := field.ProtoField.Type
+	// Identify message's package.
+	slugs := strings.Split(typ, ".")
 
+	// In the case message's package is same as the package importing its package.
+
+	if len(slugs) == 1 {
+		m, ok := proto.GetMessageByName(typ)
+		if !ok {
+			logger.Warn("message not found", zap.String("message_name", typ))
+			return
+		}
+		loc := messageToLocation(m, uri)
+		result = []protocol.Location{loc}
+		return
+	}
+
+	// In the case message's package is different from the package importing its package.
+
+	protos := make(map[string]registry.Proto)
 	imports := proto.Imports()
-
 	for _, imp := range imports {
-		logger.Debug("import", zap.String("import", fmt.Sprintf("%#v", imp.ProtoImport.Filename)))
-
 		f, err := v.FindFileByRelativePath(imp.ProtoImport.Filename)
 		if err != nil {
 			logger.Warn("failed to find file by import path", zap.Error(err))
@@ -71,42 +91,48 @@ func (s *Server) definition(ctx context.Context, params *protocol.TextDocumentPo
 		}
 		pf, ok := f.(source.ProtoFile)
 		if !ok {
-			logger.Warn("not proto file", zap.String("filename", filename))
+			logger.Warn("not proto file")
 			continue
 		}
-		protos = append(protos, pf.Proto())
-	}
-
-	logger.Debug("protos", zap.String("protos", fmt.Sprintf("%#v", protos)))
-
-	var m registry.Message
-	var found bool
-	typ := field.ProtoField.Type
-	for _, p := range protos {
-		m, found = p.GetMessageByName(typ)
-		if found {
-			break
+		if len(pf.Proto().Packages()) == 0 {
+			logger.Warn("proto has no package")
+			continue
 		}
+		protos[pf.Proto().Packages()[0].ProtoPackage.Name] = pf.Proto()
 	}
-	if m == nil || !found {
-		logger.Warn("message not found", zap.String("message_name", typ))
+
+	logger.Debug("finished import", zap.String("protos", fmt.Sprintf("%#v", protos)))
+
+	typ = slugs[len(slugs)-1]
+	pkg := strings.Join(slugs[0:len(slugs)-1], ".")
+	logger.Debug("will get proto from map", zap.String("message_name", typ), zap.String("package", pkg))
+	p, ok := protos[pkg]
+	if !ok {
+		logger.Error("proto not found", zap.String("package", pkg))
+		return
+	}
+	logger.Debug("will get message from proto", zap.String("proto", p.Packages()[0].ProtoPackage.Name))
+	m, ok := p.GetMessageByName(typ)
+	if m == nil || !ok {
+		logger.Warn("message not found", zap.String("message", typ))
 		return
 	}
 
-	p := m.Protobuf()
-	line, column := p.Position.Line, p.Position.Column
+	loc := messageToLocation(m, uri)
+	result = []protocol.Location{loc}
+	return
+}
 
-	result = []protocol.Location{
-		{
-			URI: uri,
-			Range: protocol.Range{
-				Start: protocol.Position{
-					Line:      float64(line) - 1,
-					Character: float64(column) - 1,
-				},
+func messageToLocation(m registry.Message, uri uri.URI) protocol.Location {
+	pb := m.Protobuf()
+	line, column := pb.Position.Line, pb.Position.Column
+	return protocol.Location{
+		URI: uri,
+		Range: protocol.Range{
+			Start: protocol.Position{
+				Line:      float64(line) - 1,
+				Character: float64(column) - 1,
 			},
 		},
 	}
-
-	return
 }
