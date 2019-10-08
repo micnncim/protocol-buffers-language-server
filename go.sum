@@ -39,6 +39,8 @@ github.com/go-language-server/jsonrpc2 v0.3.0 h1:lWefg5lZbYnrSQHqKEyHEGZ2himQXtD
 github.com/go-language-server/jsonrpc2 v0.3.0/go.mod h1:fHr6RX9DZFhGEFBcjBWfJXH5+o9QiXwH3vHGLqgd9zI=
 github.com/go-language-server/protocol v0.5.0 h1:nDdo0E1txdMyYqY0GnXTki/xcy5jMbXJj+NWPrmb/PM=
 github.com/go-language-server/protocol v0.5.0/go.mod h1:mAVIsoEmoVHhKelBvj11euYXPZwUxNMUoksl/ymPcz8=
+github.com/go-language-server/protocol v0.6.0 h1:3HelFm5FIEmxYHjIfKlTCo0MGrLk3Tlm6PurwYLBugE=
+github.com/go-language-server/protocol v0.6.0/go.mod h1:mAVIsoEmoVHhKelBvj11euYXPZwUxNMUoksl/ymPcz8=
 github.com/go-language-server/uri v0.2.0 h1:zkFlKR0EYmCg3076hwVbM9/+/Ugr8vMQvQQgoS2JpTo=
 github.com/go-language-server/uri v0.2.0/go.mod h1:1wEq7lT5PmX5uljJuQJeRxdW06jr5VfA1aR1FKe2/gc=
 github.com/gogo/protobuf v1.1.1/go.mod h1:r8qH/GZQm5c6nD/R0oafs1akxWv10x8SbQlK7atdtwQ=
