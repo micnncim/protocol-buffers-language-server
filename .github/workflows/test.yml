@@ -20,7 +20,7 @@ jobs:
         uses: actions/cache@preview
         with:
           path: ~/go/pkg/mod/cache
-          key: ${{ runner.os }}-${{ hashFiles('go.sum') }}
+          key: ${{ runner.os }}-${{ hashFiles('**/go.sum') }}
 
       - name: Test
         run: make test
