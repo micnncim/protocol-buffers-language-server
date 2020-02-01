@@ -13,7 +13,7 @@ jobs:
       - name: Cache Bazel binary from Bazelisk
         uses: actions/cache@v1
         with:
-          path: ~/.config/bazelisk/bin
+          path: ~/.cache/bazelisk/bin
           key: ${{ runner.os }}-${{ hashFiles('.bazelversion') }}
 
       - name: Test
