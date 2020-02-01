@@ -11,7 +11,6 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Cache Bazel binary from Bazelisk
-        if: matrix.os == 'ubuntu-latest'
         uses: actions/cache@v1
         with:
           path: ~/.config/bazelisk/bin
