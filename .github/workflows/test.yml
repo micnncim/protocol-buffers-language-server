@@ -7,20 +7,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 
-      - name: Set up Go 1.13
-        uses: actions/setup-go@v1
-        with:
-          go-version: 1.13
-        id: go
-
       - name: Check out code into the Go modules directory
-        uses: actions/checkout@v1
+        uses: actions/checkout@v2
 
-      - name: Cache Go modules
-        uses: actions/cache@preview
+      - name: Cache Bazel binary from Bazelisk
+        uses: actions/cache@v1
         with:
-          path: ~/go/pkg/mod/cache
-          key: ${{ runner.os }}-${{ hashFiles('**/go.sum') }}
+          path: ~/.cache/bazelisk/bin
+          key: ${{ runner.os }}-${{ hashFiles('.bazelversion') }}
 
       - name: Test
         run: make test
+
