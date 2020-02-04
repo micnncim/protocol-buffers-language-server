@@ -8,6 +8,7 @@
 [![Go Report Card][go-report-card-badge]][go-report-card]
 [![CodeFactor][codefactor-badge]][codefactor]
 [![Dependabot][dependabot-badge]][dependabot]
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fmicnncim%2Fprotocol-buffers-language-server.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fmicnncim%2Fprotocol-buffers-language-server?ref=badge_shield)
 
 [![DeepSource][deepsource-badge]][deepsource]
 
@@ -63,3 +64,6 @@ Protocol Buffers Language Server is released under the [Apache License 2.0](./LI
 [codefactor-badge]: https://www.codefactor.io/repository/github/micnncim/protocol-buffers-language-server/badge
 [dependabot-badge]: https://badgen.net/badge/icon/Dependabot?icon=dependabot&label&color=blue
 [deepsource-badge]: https://static.deepsource.io/deepsource-badge-light.svg
+
+
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fmicnncim%2Fprotocol-buffers-language-server.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Fmicnncim%2Fprotocol-buffers-language-server?ref=badge_large)
