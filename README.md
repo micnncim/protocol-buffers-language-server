@@ -3,7 +3,7 @@
 [![GitHub Actions][github-actions-badge]][github-actions]
 [![Go][go-badge]][go]
 [![License][license-badge]][license]
-[![GoDoc][godoc-badge]][godoc]
+[![GoDoc][pkg.go.dev-badge]][pkg.go.dev]
 [![GolangCI][golangci-badge]][golangci]
 [![Go Report Card][go-report-card-badge]][go-report-card]
 [![CodeFactor][codefactor-badge]][codefactor]
@@ -38,7 +38,8 @@ See [Contribution Guide](./CONTRIBUTING.md).
 
 ## License
 
-Copyright 2019 The Protocol Buffers Language Server Authors.  
+Copyright 2019 The Protocol Buffers Language Server Authors.
+
 Protocol Buffers Language Server is released under the [Apache License 2.0](./LICENSE).
 
 <!-- badge links -->
@@ -46,17 +47,17 @@ Protocol Buffers Language Server is released under the [Apache License 2.0](./LI
 [github-actions]: https://github.com/micnncim/protocol-buffers-language-server/actions
 [go]: https://golang.org/dl
 [license]: LICENSE
-[godoc]: https://godoc.org/github.com/micnncim/protocol-buffers-language-server
+[pkg.go.dev]: https://pkg.go.dev/github.com/micnncim/protocol-buffers-language-server
 [go-report-card]: https://goreportcard.com/report/github.com/micnncim/protocol-buffers-language-server
 [golangci]: https://golangci.com/r/github.com/micnncim/protocol-buffers-language-server
 [codefactor]: https://www.codefactor.io/repository/github/micnncim/protocol-buffers-language-server
-[dependabot]: https://dependabot.com 
+[dependabot]: https://dependabot.com
 [deepsource]: https://deepsource.io/gh/micnncim/protocol-buffers-language-server/?ref=repository-badge
 
 [github-actions-badge]: https://github.com/micnncim/protocol-buffers-language-server/workflows/Main%20Workflow/badge.svg
 [go-badge]: https://img.shields.io/badge/Go-1.13-blue
 [license-badge]: https://img.shields.io/badge/license-Apache%202.0-%23E93424
-[godoc-badge]: https://img.shields.io/badge/godoc.org-reference-blue.svg
+[pkg.go.dev-badge]: https://img.shields.io/badge/pkg.go.dev-reference-blue
 [go-report-card-badge]: https://goreportcard.com/badge/github.com/micnncim/protocol-buffers-language-server
 [golangci-badge]: https://golangci.com/badges/github.com/micnncim/protocol-buffers-language-server.svg
 [codefactor-badge]: https://www.codefactor.io/repository/github/micnncim/protocol-buffers-language-server/badge
