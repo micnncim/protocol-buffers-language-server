@@ -8,7 +8,7 @@ require (
 	github.com/alecthomas/units v0.0.0-20190717042225-c3de453c63f4 // indirect
 	github.com/bazelbuild/bazelisk v0.0.8
 	github.com/emicklei/proto v1.6.15
-	github.com/go-language-server/jsonrpc2 v0.3.0
+	github.com/go-language-server/jsonrpc2 v0.4.0
 	github.com/go-language-server/protocol v0.5.0
 	github.com/go-language-server/uri v0.2.0
 	github.com/golang/mock v1.3.1
