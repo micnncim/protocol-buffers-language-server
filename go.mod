@@ -11,7 +11,7 @@ require (
 	github.com/go-language-server/jsonrpc2 v0.3.0
 	github.com/go-language-server/protocol v0.5.0
 	github.com/go-language-server/uri v0.2.0
-	github.com/golang/mock v1.3.1
+	github.com/golang/mock v1.4.3
 	github.com/kelseyhightower/envconfig v1.4.0
 	go.uber.org/atomic v1.4.0
 	go.uber.org/zap v1.10.1-0.20190430155229-8a2ee5670ced
