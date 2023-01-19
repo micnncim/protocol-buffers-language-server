@@ -18,7 +18,7 @@ import (
 	"context"
 	"strings"
 
-	"github.com/go-language-server/protocol"
+	"go.lsp.dev/protocol"
 	"go.uber.org/zap"
 
 	"github.com/micnncim/protocol-buffers-language-server/pkg/logging"

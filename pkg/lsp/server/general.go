@@ -24,9 +24,9 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/go-language-server/jsonrpc2"
-	"github.com/go-language-server/protocol"
-	"github.com/go-language-server/uri"
+	"go.lsp.dev/jsonrpc2"
+	"go.lsp.dev/protocol"
+	"go.lsp.dev/uri"
 	"go.uber.org/zap"
 
 	"github.com/micnncim/protocol-buffers-language-server/pkg/config"
@@ -73,7 +73,7 @@ func (s *Server) initialize(ctx context.Context, params *protocol.InitializePara
 		Capabilities: protocol.ServerCapabilities{
 			TextDocumentSync: protocol.TextDocumentSyncOptions{
 				OpenClose: true,
-				Change:    float64(cfg.TextDocumentSyncKind),
+				Change:    cfg.TextDocumentSyncKind,
 			},
 			HoverProvider: false,
 			CompletionProvider: &protocol.CompletionOptions{

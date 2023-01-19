@@ -24,8 +24,8 @@ import (
 	"net"
 	"sync"
 
-	"github.com/go-language-server/jsonrpc2"
-	"github.com/go-language-server/protocol"
+	"go.lsp.dev/jsonrpc2"
+	"go.lsp.dev/protocol"
 	"go.uber.org/zap"
 
 	"github.com/micnncim/protocol-buffers-language-server/pkg/config"
@@ -43,8 +43,8 @@ const (
 )
 
 type Server struct {
-	Conn   *jsonrpc2.Conn
-	Client protocol.ClientInterface
+	Conn   jsonrpc2.Conn
+	Client protocol.Client
 
 	state   state
 	stateMu *sync.RWMutex
@@ -56,7 +56,7 @@ type Server struct {
 	logger *zap.Logger
 }
 
-var _ protocol.ServerInterface = (*Server)(nil)
+var _ protocol.Server = (*Server)(nil)
 
 type Option func(*Server)
 
@@ -77,12 +77,7 @@ func NewServer(ctx context.Context, session source.Session, stream jsonrpc2.Stre
 		opt(s)
 	}
 
-	jsonrpcOpts := []jsonrpc2.Options{
-		jsonrpc2.WithCanceler(protocol.Canceller),
-		jsonrpc2.WithCapacity(protocol.DefaultBufferSize),
-		jsonrpc2.WithLogger(s.logger.Named("jsonrpc2")),
-	}
-	s.Conn, s.Client = protocol.NewServer(ctx, s, stream, zap.NewNop(), jsonrpcOpts...)
+	ctx, s.Conn, s.Client = protocol.NewServer(ctx, s, stream, zap.NewNop())
 
 	logger := s.logger.Named("server")
 	logging.WithContext(ctx, logger)
@@ -108,12 +103,13 @@ func RunServerOnAddress(ctx context.Context, session source.Session, addr string
 		if err != nil {
 			return err
 		}
-		handler(NewServer(ctx, session, jsonrpc2.NewStream(conn, conn), opts...))
+		handler(NewServer(ctx, session, jsonrpc2.NewStream(conn), opts...))
 	}
 }
 
 func (s *Server) Run(ctx context.Context) (err error) {
-	return s.Conn.Run(ctx)
+	<-s.Conn.Done()
+	return s.Conn.Err()
 }
 
 // Initialize implements initialize method.
@@ -150,6 +146,11 @@ func (s *Server) CodeLens(ctx context.Context, params *protocol.CodeLensParams) 
 	return
 }
 
+func (s *Server) CodeLensRefresh(ctx context.Context) (err error) {
+	err = notImplemented("CodeLensRefresh")
+	return
+}
+
 func (s *Server) CodeLensResolve(ctx context.Context, params *protocol.CodeLens) (result *protocol.CodeLens, err error) {
 	err = notImplemented("CodeLensResolve")
 	return
@@ -171,15 +172,15 @@ func (s *Server) CompletionResolve(ctx context.Context, params *protocol.Complet
 	return
 }
 
-func (s *Server) Declaration(ctx context.Context, params *protocol.TextDocumentPositionParams) (result []protocol.Location, err error) {
+func (s *Server) Declaration(ctx context.Context, params *protocol.DeclarationParams) (result []protocol.Location, err error) {
 	err = notImplemented("Declaration")
 	return
 }
 
 // Definition implements textDocument/definition method.
 // https://microsoft.github.io/language-server-protocol/specification#textDocument_definition
-func (s *Server) Definition(ctx context.Context, params *protocol.TextDocumentPositionParams) (result []protocol.Location, err error) {
-	return s.definition(ctx, params)
+func (s *Server) Definition(ctx context.Context, params *protocol.DefinitionParams) (result []protocol.Location, err error) {
+	return s.definition(ctx, &params.TextDocumentPositionParams)
 }
 
 // DidChange implements textDocument/didChange method.
@@ -222,12 +223,27 @@ func (s *Server) DidSave(ctx context.Context, params *protocol.DidSaveTextDocume
 	return s.didSave(ctx, params)
 }
 
+func (s *Server) DidCreateFiles(ctx context.Context, params *protocol.CreateFilesParams) (err error) {
+	err = notImplemented("DidCreateFiles")
+	return
+}
+
+func (s *Server) DidDeleteFiles(ctx context.Context, params *protocol.DeleteFilesParams) (err error) {
+	err = notImplemented("DidDeleteFiles")
+	return
+}
+
+func (s *Server) DidRenameFiles(ctx context.Context, params *protocol.RenameFilesParams) (err error) {
+	err = notImplemented("DidRenameFiles")
+	return
+}
+
 func (s *Server) DocumentColor(ctx context.Context, params *protocol.DocumentColorParams) (result []protocol.ColorInformation, err error) {
 	err = notImplemented("DocumentColor")
 	return
 }
 
-func (s *Server) DocumentHighlight(ctx context.Context, params *protocol.TextDocumentPositionParams) (result []protocol.DocumentHighlight, err error) {
+func (s *Server) DocumentHighlight(ctx context.Context, params *protocol.DocumentHighlightParams) (result []protocol.DocumentHighlight, err error) {
 	err = notImplemented("DocumentHighlight")
 	return
 }
@@ -242,7 +258,7 @@ func (s *Server) DocumentLinkResolve(ctx context.Context, params *protocol.Docum
 	return
 }
 
-func (s *Server) DocumentSymbol(ctx context.Context, params *protocol.DocumentSymbolParams) (result []protocol.DocumentSymbol, err error) {
+func (s *Server) DocumentSymbol(ctx context.Context, params *protocol.DocumentSymbolParams) (result []interface{}, err error) {
 	err = notImplemented("DocumentSymbol")
 	return
 }
@@ -262,12 +278,12 @@ func (s *Server) Formatting(ctx context.Context, params *protocol.DocumentFormat
 	return
 }
 
-func (s *Server) Hover(ctx context.Context, params *protocol.TextDocumentPositionParams) (result *protocol.Hover, err error) {
+func (s *Server) Hover(ctx context.Context, params *protocol.HoverParams) (result *protocol.Hover, err error) {
 	err = notImplemented("Hover")
 	return
 }
 
-func (s *Server) Implementation(ctx context.Context, params *protocol.TextDocumentPositionParams) (result []protocol.Location, err error) {
+func (s *Server) Implementation(ctx context.Context, params *protocol.ImplementationParams) (result []protocol.Location, err error) {
 	err = notImplemented("Implementation")
 	return
 }
@@ -277,8 +293,13 @@ func (s *Server) OnTypeFormatting(ctx context.Context, params *protocol.Document
 	return
 }
 
-func (s *Server) PrepareRename(ctx context.Context, params *protocol.TextDocumentPositionParams) (result *protocol.Range, err error) {
+func (s *Server) PrepareRename(ctx context.Context, params *protocol.PrepareRenameParams) (result *protocol.Range, err error) {
 	err = notImplemented("PrepareRename")
+	return
+}
+
+func (s *Server) PrepareCallHierarchy(ctx context.Context, params *protocol.CallHierarchyPrepareParams) (result []protocol.CallHierarchyItem, err error) {
+	err = notImplemented("PrepareCallHierarchy")
 	return
 }
 
@@ -297,7 +318,7 @@ func (s *Server) Rename(ctx context.Context, params *protocol.RenameParams) (res
 	return
 }
 
-func (s *Server) SignatureHelp(ctx context.Context, params *protocol.TextDocumentPositionParams) (result *protocol.SignatureHelp, err error) {
+func (s *Server) SignatureHelp(ctx context.Context, params *protocol.SignatureHelpParams) (result *protocol.SignatureHelp, err error) {
 	err = notImplemented("SignatureHelp")
 	return
 }
@@ -307,7 +328,7 @@ func (s *Server) Symbols(ctx context.Context, params *protocol.WorkspaceSymbolPa
 	return
 }
 
-func (s *Server) TypeDefinition(ctx context.Context, params *protocol.TextDocumentPositionParams) (result []protocol.Location, err error) {
+func (s *Server) TypeDefinition(ctx context.Context, params *protocol.TypeDefinitionParams) (result []protocol.Location, err error) {
 	err = notImplemented("TypeDefinition")
 	return
 }
@@ -319,6 +340,86 @@ func (s *Server) WillSave(ctx context.Context, params *protocol.WillSaveTextDocu
 
 func (s *Server) WillSaveWaitUntil(ctx context.Context, params *protocol.WillSaveTextDocumentParams) (result []protocol.TextEdit, err error) {
 	err = notImplemented("WillSaveWaitUntil")
+	return
+}
+
+func (s *Server) WillCreateFiles(ctx context.Context, params *protocol.CreateFilesParams) (result *protocol.WorkspaceEdit, err error) {
+	err = notImplemented("WillCreateFiles")
+	return
+}
+
+func (s *Server) WillRenameFiles(ctx context.Context, params *protocol.RenameFilesParams) (result *protocol.WorkspaceEdit, err error) {
+	err = notImplemented("WillRenameFiles")
+	return
+}
+
+func (s *Server) WillDeleteFiles(ctx context.Context, params *protocol.DeleteFilesParams) (result *protocol.WorkspaceEdit, err error) {
+	err = notImplemented("WillDeleteFiles")
+	return
+}
+
+func (s *Server) IncomingCalls(ctx context.Context, params *protocol.CallHierarchyIncomingCallsParams) (result []protocol.CallHierarchyIncomingCall, err error) {
+	err = notImplemented("IncomingCalls")
+	return
+}
+
+func (s *Server) OutgoingCalls(ctx context.Context, params *protocol.CallHierarchyOutgoingCallsParams) (result []protocol.CallHierarchyOutgoingCall, err error) {
+	err = notImplemented("OutgoingCalls")
+	return
+}
+
+func (s *Server) LinkedEditingRange(ctx context.Context, params *protocol.LinkedEditingRangeParams) (result *protocol.LinkedEditingRanges, err error) {
+	err = notImplemented("LinkedEditingRange")
+	return
+}
+
+func (s *Server) LogTrace(ctx context.Context, params *protocol.LogTraceParams) (err error) {
+	err = notImplemented("LogTrace")
+	return
+}
+
+func (s *Server) SetTrace(ctx context.Context, params *protocol.SetTraceParams) (err error) {
+	err = notImplemented("SetTrace")
+	return
+}
+
+func (s *Server) Moniker(ctx context.Context, params *protocol.MonikerParams) (result []protocol.Moniker, err error) {
+	err = notImplemented("Moniker")
+	return
+}
+
+func (s *Server) Request(ctx context.Context, method string, params interface{}) (result interface{}, err error) {
+	err = notImplemented("Request")
+	return
+}
+
+func (s *Server) SemanticTokensFull(ctx context.Context, params *protocol.SemanticTokensParams) (result *protocol.SemanticTokens, err error) {
+	err = notImplemented("SemanticTokensFull")
+	return
+}
+
+func (s *Server) SemanticTokensFullDelta(ctx context.Context, params *protocol.SemanticTokensDeltaParams) (result interface{}, err error) {
+	err = notImplemented("SemanticTokensFullDelta")
+	return
+}
+
+func (s *Server) SemanticTokensRange(ctx context.Context, params *protocol.SemanticTokensRangeParams) (result *protocol.SemanticTokens, err error) {
+	err = notImplemented("SemanticTokensRange")
+	return
+}
+
+func (s *Server) SemanticTokensRefresh(ctx context.Context) (err error) {
+	err = notImplemented("SemanticTokensRefresh")
+	return
+}
+
+func (s *Server) ShowDocument(ctx context.Context, params *protocol.ShowDocumentParams) (result *protocol.ShowDocumentResult, err error) {
+	err = notImplemented("ShowDocument")
+	return
+}
+
+func (s *Server) WorkDoneProgressCancel(ctx context.Context, params *protocol.WorkDoneProgressCancelParams) (err error) {
+	err = notImplemented("WorkDoneProgressCancel")
 	return
 }
 

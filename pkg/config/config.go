@@ -15,7 +15,7 @@
 package config
 
 import (
-	"github.com/go-language-server/protocol"
+	"go.lsp.dev/protocol"
 	"github.com/kelseyhightower/envconfig"
 )
 
@@ -23,7 +23,7 @@ const envPrefix = "PROTOBUF_LSP"
 
 var (
 	DefaultLSPConfig = LSP{
-		TextDocumentSyncKind: protocol.Full,
+		TextDocumentSyncKind: protocol.TextDocumentSyncKindFull,
 	}
 )
 

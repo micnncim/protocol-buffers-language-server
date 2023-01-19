@@ -21,7 +21,7 @@ package source
 import (
 	"context"
 
-	"github.com/go-language-server/uri"
+	"go.lsp.dev/uri"
 
 	"github.com/micnncim/protocol-buffers-language-server/pkg/proto/registry"
 )
