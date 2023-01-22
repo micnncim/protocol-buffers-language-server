@@ -25,7 +25,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/go-language-server/uri"
+	"go.lsp.dev/uri"
 	"go.uber.org/atomic"
 )
 

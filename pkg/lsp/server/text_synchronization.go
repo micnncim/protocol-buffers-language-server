@@ -22,8 +22,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/go-language-server/jsonrpc2"
-	"github.com/go-language-server/protocol"
+	"go.lsp.dev/jsonrpc2"
+	"go.lsp.dev/protocol"
 	"go.uber.org/zap"
 
 	"github.com/micnncim/protocol-buffers-language-server/pkg/logging"
@@ -52,10 +52,10 @@ func (s *Server) didChange(ctx context.Context, params *protocol.DidChangeTextDo
 	text := params.ContentChanges[0].Text
 
 	switch s.config.TextDocumentSyncKind {
-	case protocol.None:
+	case protocol.TextDocumentSyncKindNone:
 		return nil
-	case protocol.Full:
-	case protocol.Incremental:
+	case protocol.TextDocumentSyncKindFull:
+	case protocol.TextDocumentSyncKindIncremental:
 		return fmt.Errorf("incremental change is not supported yet")
 	}
 

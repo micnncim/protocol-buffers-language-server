@@ -17,7 +17,7 @@ package server
 import (
 	"context"
 
-	"github.com/go-language-server/protocol"
+	"go.lsp.dev/protocol"
 	"go.uber.org/zap"
 
 	"github.com/micnncim/protocol-buffers-language-server/pkg/logging"
@@ -70,8 +70,8 @@ func (s *Server) definition(ctx context.Context, params *protocol.TextDocumentPo
 			URI: uri,
 			Range: protocol.Range{
 				Start: protocol.Position{
-					Line:      float64(line) - 1,
-					Character: float64(column) - 1,
+					Line:      uint32(line) - 1,
+					Character: uint32(column) - 1,
 				},
 			},
 		},

@@ -20,7 +20,7 @@ import (
 	"os"
 
 	"github.com/alecthomas/kingpin"
-	"github.com/go-language-server/jsonrpc2"
+	"go.lsp.dev/jsonrpc2"
 	"go.uber.org/zap"
 
 	"github.com/micnncim/protocol-buffers-language-server/pkg/config"
@@ -59,6 +59,20 @@ func main() {
 	}
 }
 
+type stdio struct{}
+
+func (s stdio) Read(p []byte) (n int, err error) {
+	return os.Stdin.Read(p)
+}
+
+func (s stdio) Write(p []byte) (n int, err error) {
+	return os.Stdout.Write(p)
+}
+
+func (s stdio) Close() error {
+	return nil
+}
+
 func runServer(ctx context.Context, session source.Session, opts ...server.Option) error {
 	run := func(ctx context.Context, srv *server.Server) {
 		go srv.Run(ctx)
@@ -72,7 +86,8 @@ func runServer(ctx context.Context, session source.Session, opts ...server.Optio
 		return server.RunServerOnPort(ctx, session, port, run, opts...)
 	}
 
-	stream := jsonrpc2.NewStream(os.Stdin, os.Stdout)
+	var s stdio
+	stream := jsonrpc2.NewStream(s)
 	ctx, srv := server.NewServer(ctx, session, stream, opts...)
 
 	return srv.Run(ctx)
